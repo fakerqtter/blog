@@ -1,19 +1,30 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>Posts on FakerQtter</title>
-    <link>https://example.org/posts/</link>
-    <description>Recent content in Posts on FakerQtter</description>
-    <generator>Hugo</generator>
-    <language>en-us</language>
+    <title>Posts on Jane - A super concise theme for Hugo</title>
+    <link>http://localhost:1313/posts/</link>
+    <description>Recent content in Posts on Jane - A super concise theme for Hugo</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en</language>
+    <managingEditor>me@example.com (Jane)</managingEditor>
+    <webMaster>me@example.com (Jane)</webMaster>
     <lastBuildDate>Mon, 28 Apr 2025 12:00:00 +0800</lastBuildDate>
-    <atom:link href="https://example.org/posts/index.xml" rel="self" type="application/rss+xml" />
+    
+        <atom:link href="http://localhost:1313/posts/index.xml" rel="self" type="application/rss+xml" />
+    
+    
     <item>
       <title>Hello, Hugo! &#34;Hello, World!&#34;</title>
-      <link>https://example.org/posts/my-first-post/</link>
+      <link>http://localhost:1313/posts/my-first-post/</link>
       <pubDate>Mon, 28 Apr 2025 12:00:00 +0800</pubDate>
-      <guid>https://example.org/posts/my-first-post/</guid>
-      <description>&lt;p&gt;Hello, World!&#xA;Hello, Hugo!&lt;/p&gt;</description>
+      <author>me@example.com (Jane)</author>
+      <guid>http://localhost:1313/posts/my-first-post/</guid>
+      
+        <description>&lt;p&gt;Hello, World!
+Hello, Hugo!&lt;/p&gt;
+</description>
+      
     </item>
+    
   </channel>
 </rss>
