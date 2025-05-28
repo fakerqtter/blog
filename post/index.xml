@@ -2,38 +2,38 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Posts on Rocx Blog</title>
-    <link>http://localhost:1313/post/</link>
+    <link>https://qtter.com/post/</link>
     <description>Recent content in Posts on Rocx Blog</description>
     <generator>Hugo</generator>
     <language>en-us</language>
     <lastBuildDate>Thu, 29 Feb 2024 00:00:00 +0000</lastBuildDate>
-    <atom:link href="http://localhost:1313/post/index.xml" rel="self" type="application/rss+xml" />
+    <atom:link href="https://qtter.com/post/index.xml" rel="self" type="application/rss+xml" />
     <item>
       <title>一个活在未来的人</title>
-      <link>http://localhost:1313/2024/02/29/a-feature-man/</link>
+      <link>https://qtter.com/2024/02/29/a-feature-man/</link>
       <pubDate>Thu, 29 Feb 2024 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/2024/02/29/a-feature-man/</guid>
+      <guid>https://qtter.com/2024/02/29/a-feature-man/</guid>
       <description>&lt;blockquote&gt;&#xA;&lt;p&gt;“Yeah It&amp;rsquo;s on. ”&lt;/p&gt;&lt;/blockquote&gt;&#xA;&lt;p&gt;我有个朋友，他最近很迷茫。&lt;/p&gt;&#xA;&lt;p&gt;最近有个朋友和我聊天，说了他最近的困惑和迷茫的心态，让我颇为感慨。&lt;/p&gt;&#xA;&lt;p&gt;他说，他一直觉得自己是一个活着未来的人。&lt;/p&gt;</description>
     </item>
     <item>
       <title>Markdown Syntax Guide</title>
-      <link>http://localhost:1313/post/markdown-syntax/</link>
+      <link>https://qtter.com/post/markdown-syntax/</link>
       <pubDate>Thu, 13 Jul 2023 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/post/markdown-syntax/</guid>
+      <guid>https://qtter.com/post/markdown-syntax/</guid>
       <description>&lt;p&gt;This article offers a sample of basic Markdown syntax that can be used in Hugo content files, also it shows whether basic HTML elements are decorated with CSS in a Hugo theme.&lt;/p&gt;</description>
     </item>
     <item>
       <title>记录viper框架热加载配置文件的一个BUG</title>
-      <link>http://localhost:1313/2022/07/27/a-viper-conf-bug/</link>
+      <link>https://qtter.com/2022/07/27/a-viper-conf-bug/</link>
       <pubDate>Wed, 27 Jul 2022 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/2022/07/27/a-viper-conf-bug/</guid>
+      <guid>https://qtter.com/2022/07/27/a-viper-conf-bug/</guid>
       <description>&lt;blockquote&gt;&#xA;&lt;p&gt;“还是老样子，又是一个背景交代。&#xA;最近公司一直在搞降本增效，各种优化。期间发现一些服务的配置文件热加载经常更新失败，一番分析之后，发现是框架里使用了 viper 的文件监控和热加载的功能，在一些特殊的使用姿势的情况下，会引发更新bug。”&lt;/p&gt;</description>
     </item>
     <item>
       <title>Clean White Theme for Hugo</title>
-      <link>http://localhost:1313/post/readme/</link>
+      <link>https://qtter.com/post/readme/</link>
       <pubDate>Wed, 09 Jan 2019 00:00:00 +0000</pubDate>
-      <guid>http://localhost:1313/post/readme/</guid>
+      <guid>https://qtter.com/post/readme/</guid>
       <description>&lt;h1 id=&#34;clean-white-theme-for-hugo&#34;&gt;Clean White Theme for Hugo&lt;/h1&gt;&#xA;&lt;p&gt;CleanWhite is a clean, elegant, but fully functional blog theme for Hugo. Here is a live &lt;a href=&#34;https://qtter.com&#34;&gt;demo site&lt;/a&gt; using this theme.&lt;/p&gt;&#xA;&lt;p&gt;It is based on &lt;a href=&#34;https://github.com/Huxpro/huxpro.github.io&#34;&gt;huxblog Jekyll Theme&lt;/a&gt;&#xA;and &lt;a href=&#34;https://github.com/BlackrockDigital/startbootstrap-clean-blog-jekyll&#34;&gt;Clean Blog Jekyll Theme&lt;/a&gt;.&lt;/p&gt;&#xA;&lt;p&gt;These two upstream projects have done awesome jobs to create a blog theme, what I&amp;rsquo;m doing here is porting it to Hugo, of which I like the simplicity and the much faster compiling speed. Some other features which I think could be useful, such as site search with algolia and proxy for Disqus access in China, have also been built in the CleanWhite theme. Other fancy features of upstream projects are not supported by this Hugo theme, I&amp;rsquo;d like to make it as simple as possible and only focus on blog purpose, at least for now.&#xA;While I created this theme, I followed the Hugo theme best practice and tried to make every part of the template as a replaceable partial html, so it could be much easier for you to make your customization based on it.&lt;/p&gt;</description>
     </item>
   </channel>

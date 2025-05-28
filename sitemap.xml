@@ -2,83 +2,83 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>http://localhost:1313/post/</loc>
+    <loc>https://qtter.com/post/</loc>
     <lastmod>2024-02-29T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/</loc>
+    <loc>https://qtter.com/</loc>
     <lastmod>2024-02-29T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/2024/02/29/a-feature-man/</loc>
+    <loc>https://qtter.com/2024/02/29/a-feature-man/</loc>
     <lastmod>2024-02-29T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/tags/css/</loc>
+    <loc>https://qtter.com/tags/css/</loc>
     <lastmod>2023-07-13T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/tags/html/</loc>
+    <loc>https://qtter.com/tags/html/</loc>
     <lastmod>2023-07-13T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/tags/hugo/</loc>
+    <loc>https://qtter.com/tags/hugo/</loc>
     <lastmod>2023-07-13T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/tags/markdown/</loc>
+    <loc>https://qtter.com/tags/markdown/</loc>
     <lastmod>2023-07-13T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/post/markdown-syntax/</loc>
+    <loc>https://qtter.com/post/markdown-syntax/</loc>
     <lastmod>2023-07-13T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/categories/syntax/</loc>
+    <loc>https://qtter.com/categories/syntax/</loc>
     <lastmod>2023-07-13T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/categories/theme-demo/</loc>
+    <loc>https://qtter.com/categories/theme-demo/</loc>
     <lastmod>2023-07-13T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/authors/</loc>
+    <loc>https://qtter.com/authors/</loc>
     <lastmod>2023-01-05T01:15:52+01:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/autores/autores-de-hugo/</loc>
+    <loc>https://qtter.com/autores/autores-de-hugo/</loc>
     <lastmod>2023-01-05T01:15:52+01:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/authors/hugo-authors/</loc>
+    <loc>https://qtter.com/authors/hugo-authors/</loc>
     <lastmod>2023-01-05T01:15:29+01:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/categories/</loc>
+    <loc>https://qtter.com/categories/</loc>
     <lastmod>2023-01-04T23:21:18+01:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/categoria/temas/</loc>
+    <loc>https://qtter.com/categoria/temas/</loc>
     <lastmod>2023-01-04T23:21:18+01:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/categoria/sintaxe/</loc>
+    <loc>https://qtter.com/categoria/sintaxe/</loc>
     <lastmod>2023-01-04T23:21:06+01:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/tags/shortcodes/_index.pt-br/</loc>
+    <loc>https://qtter.com/tags/shortcodes/_index.pt-br/</loc>
     <lastmod>2023-01-04T11:51:36+01:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/tags/</loc>
+    <loc>https://qtter.com/tags/</loc>
     <lastmod>2023-01-04T11:51:36+01:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/2022/07/27/a-viper-conf-bug/</loc>
+    <loc>https://qtter.com/2022/07/27/a-viper-conf-bug/</loc>
     <lastmod>2022-07-27T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/about.pt-br/</loc>
+    <loc>https://qtter.com/about.pt-br/</loc>
     <lastmod>2019-02-28T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/post/readme/</loc>
+    <loc>https://qtter.com/post/readme/</loc>
     <lastmod>2019-01-09T00:00:00+00:00</lastmod>
   </url><url>
-    <loc>http://localhost:1313/about/</loc>
+    <loc>https://qtter.com/about/</loc>
   </url><url>
-    <loc>http://localhost:1313/search/placeholder/</loc>
+    <loc>https://qtter.com/search/placeholder/</loc>
   </url><url>
-    <loc>http://localhost:1313/contact/</loc>
+    <loc>https://qtter.com/contact/</loc>
   </url><url>
-    <loc>http://localhost:1313/contact/</loc>
+    <loc>https://qtter.com/contact/</loc>
   </url><url>
-    <loc>http://localhost:1313/archive/</loc>
+    <loc>https://qtter.com/archive/</loc>
   </url><url>
-    <loc>http://localhost:1313/projects/</loc>
+    <loc>https://qtter.com/projects/</loc>
   </url><url>
-    <loc>http://localhost:1313/projects/</loc>
+    <loc>https://qtter.com/projects/</loc>
   </url><url>
-    <loc>http://localhost:1313/search/</loc>
+    <loc>https://qtter.com/search/</loc>
   </url>
 </urlset>
