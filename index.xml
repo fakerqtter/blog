@@ -59,6 +59,13 @@
     </item>
     <item>
       <title>About</title>
+      <link>https://faker.qtter.com/about/</link>
+      <pubDate>Thu, 28 Feb 2019 00:00:00 +0000</pubDate>
+      <guid>https://faker.qtter.com/about/</guid>
+      <description>&lt;p&gt;Written in Go, Hugo is an open source static site generator available under the &lt;a href=&#34;https://github.com/gohugoio/hugo/blob/master/LICENSE&#34;&gt;Apache Licence 2.0.&lt;/a&gt; Hugo supports TOML, YAML and JSON data file types, Markdown and HTML content files and uses shortcodes to add rich content. Other notable features are taxonomies, multilingual mode, image processing, custom output formats, HTML/CSS/JS minification and support for Sass SCSS workflows.&lt;/p&gt;&#xA;&lt;p&gt;Hugo makes use of a variety of open source projects including:&lt;/p&gt;&#xA;&lt;ul&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://github.com/yuin/goldmark&#34;&gt;https://github.com/yuin/goldmark&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://github.com/alecthomas/chroma&#34;&gt;https://github.com/alecthomas/chroma&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://github.com/muesli/smartcrop&#34;&gt;https://github.com/muesli/smartcrop&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://github.com/spf13/cobra&#34;&gt;https://github.com/spf13/cobra&lt;/a&gt;&lt;/li&gt;&#xA;&lt;li&gt;&lt;a href=&#34;https://github.com/spf13/viper&#34;&gt;https://github.com/spf13/viper&lt;/a&gt;&lt;/li&gt;&#xA;&lt;/ul&gt;&#xA;&lt;p&gt;Hugo is ideal for blogs, corporate websites, creative portfolios, online magazines, single page applications or even a website with thousands of pages.&lt;/p&gt;</description>
+    </item>
+    <item>
+      <title>About</title>
       <link>https://faker.qtter.com/about.pt-br/</link>
       <pubDate>Thu, 28 Feb 2019 00:00:00 +0000</pubDate>
       <guid>https://faker.qtter.com/about.pt-br/</guid>
@@ -73,10 +80,10 @@
     </item>
     <item>
       <title></title>
-      <link>https://faker.qtter.com/about/</link>
+      <link>https://faker.qtter.com/about/index-zh/</link>
       <pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate>
-      <guid>https://faker.qtter.com/about/</guid>
-      <description>&lt;h2 id=&#34;about-me&#34;&gt;About Me&lt;/h2&gt;&#xA;&lt;p&gt;&lt;strong&gt;&lt;em&gt;Huabing Zhao&lt;/em&gt;&lt;/strong&gt; is a software architect, an Istio Member and an ONAP PTL. He has a solid experience in the information and telecommunication technology industry for more than 17 years.&lt;/p&gt;&#xA;&lt;p&gt;Throughout his career, he has built a number of large-scale, cross-country software systems, most of them are still running in production.&lt;/p&gt;&#xA;&lt;p&gt;He loves open source and has been contributing to various open source projects, he is a member of Istio,  previous PTL of ONAP, the author of the Hugo clean-white theme and the open source project Aeraki Mesh.&lt;/p&gt;</description>
+      <guid>https://faker.qtter.com/about/index-zh/</guid>
+      <description>&lt;h2 id=&#34;关于我&#34;&gt;关于我&lt;/h2&gt;&#xA;&lt;p&gt;安徽人在上海。&lt;/p&gt;&#xA;&lt;p&gt;211渣本。2011年毕业之后来的上海，工作至今。&lt;/p&gt;&#xA;&lt;p&gt;自我定位，互联网行业，技术类管理和研发。&lt;/p&gt;&#xA;&lt;p&gt;生活简单，爱好广泛。&lt;/p&gt;&#xA;&lt;p&gt;听歌百无禁忌，只讲究前奏十秒即可判断去留的那种，因此略显庞杂。&lt;/p&gt;</description>
     </item>
     <item>
       <title></title>
