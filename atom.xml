@@ -88,7 +88,7 @@
     <link href="http://example.com/2025/06/15/202506/2025-06-15-keep-moving/"/>
     <id>http://example.com/2025/06/15/202506/2025-06-15-keep-moving/</id>
     <published>2025-06-14T16:00:00.000Z</published>
-    <updated>2025-07-12T07:37:04.577Z</updated>
+    <updated>2025-07-12T09:30:03.918Z</updated>
     
     <content type="html"><![CDATA[<iframe src="https://www.bilibili.com/bangumi/play/ep425640/?share_source=copy_web"   scrolling="no" border="0" frameborder="no" framespacing="0" allowfullscreen="true"   width="640" height="360"> </iframe>]]></content>
     
@@ -102,11 +102,9 @@
     
     
     
-    <category term="视频" scheme="http://example.com/tags/%E8%A7%86%E9%A2%91/"/>
+    <category term="dota2" scheme="http://example.com/tags/dota2/"/>
     
     <category term="游戏" scheme="http://example.com/tags/%E6%B8%B8%E6%88%8F/"/>
-    
-    <category term="Dota2" scheme="http://example.com/tags/Dota2/"/>
     
   </entry>
   
@@ -115,7 +113,7 @@
     <link href="http://example.com/2024/07/12/dota2/index/"/>
     <id>http://example.com/2024/07/12/dota2/index/</id>
     <published>2024-07-12T07:24:54.000Z</published>
-    <updated>2025-07-12T07:32:58.570Z</updated>
+    <updated>2025-07-12T09:30:09.729Z</updated>
     
     <content type="html"><![CDATA[<video width="640" height="360"  controls autoplay loop muted>  <source src="/video/dota/dota2.mp4" type="video/mp4"></video>]]></content>
     
@@ -132,9 +130,9 @@
     <category term="游戏" scheme="http://example.com/categories/%E6%B8%B8%E6%88%8F/"/>
     
     
-    <category term="dota" scheme="http://example.com/tags/dota/"/>
-    
     <category term="dota2" scheme="http://example.com/tags/dota2/"/>
+    
+    <category term="游戏" scheme="http://example.com/tags/%E6%B8%B8%E6%88%8F/"/>
     
   </entry>
   
