@@ -157,6 +157,7 @@ div {
   font-size: 14px;
   color: #333;
   text-decoration: none;
+  margin: 2px 2px; /* 💡 加上这一行：上下左右都有外边距 */
   border: 1px solid #ddd;
   border-radius: 6px;
   background-color: transparent;
@@ -418,6 +419,7 @@ div {
   font-size: 14px;
   color: #333;
   text-decoration: none;
+  margin: 2px 2px; /* 💡 加上这一行：上下左右都有外边距 */
   border: 1px solid #ddd;
   border-radius: 6px;
   background-color: transparent;
