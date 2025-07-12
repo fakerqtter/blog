@@ -173,7 +173,7 @@ div {
   padding: 0;
 }
 #sidebar .widget ul li {
-  margin: 5px 0;
+  margin: 5px 0 0 15px;
   line-height: 1.5;
 }
 #sidebar .widget ul li .wl-emoji {
