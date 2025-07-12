@@ -152,8 +152,20 @@ div {
   margin-top: 10px;
 }
 #sidebar .widget .tagcloud a {
-  line-height: 1.5;
-  padding: 5px;
+  display: inline-block;
+  padding: 4px 8px;
+  font-size: 14px;
+  color: #333;
+  text-decoration: none;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: transparent;
+  transition: all 0.2s ease;
+}
+#sidebar .widget .tagcloud a:hover {
+  background-color: #f0f0f0; /* 淡灰色 hover 背景 */
+  border-color: #ccc;
+  color: #000;
 }
 #sidebar .widget ul {
   list-style: none;
@@ -401,17 +413,20 @@ div {
   margin: 0 0 30px 0;
 }
 .post .post-content .tagcloud a {
-  padding: 0px 5px;
-  margin: 3px;
   display: inline-block;
-  border: 1px solid #808080;
-  border-radius: 999em;
-  color: #aaa;
+  padding: 4px 8px;
+  font-size: 14px;
+  color: #333;
+  text-decoration: none;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background-color: transparent;
+  transition: all 0.2s ease;
 }
 .post .post-content .tagcloud a:hover {
-  color: #fff;
-  border: 1px solid #808080;
-  background: #808080;
+  background-color: #f0f0f0; /* 淡灰色 hover 背景 */
+  border-color: #ccc;
+  color: #000;
 }
 .post .post-content .one-tag-list {
   margin: 30px 0;

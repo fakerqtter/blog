@@ -1,0 +1,527 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Rocx&#39;s blog</title>
+  
+  <subtitle>我想知道，宇宙的目的是什么</subtitle>
+  <link href="http://example.com/atom.xml" rel="self"/>
+  
+  <link href="http://example.com/"/>
+  <updated>2025-07-10T03:03:17.991Z</updated>
+  <id>http://example.com/</id>
+  
+  <author>
+    <name>Rocx</name>
+    
+  </author>
+  
+  <generator uri="https://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>ACME 协议 &amp; Let&#39;s Encrypt 证书申请流程详解</title>
+    <link href="http://example.com/2025/07/10/202507/acme-protocol/"/>
+    <id>http://example.com/2025/07/10/202507/acme-protocol/</id>
+    <published>2025-07-09T16:00:00.000Z</published>
+    <updated>2025-07-10T03:03:17.991Z</updated>
+    
+    <content type="html"><![CDATA[<h2 id="📖-什么是-ACME？"><a href="#📖-什么是-ACME？" class="headerlink" title="📖 什么是 ACME？"></a>📖 什么是 ACME？</h2><p>ACME（Automatic Certificate Management Environment）是由 <a href="https://letsencrypt.org/">Let’s Encrypt</a> 提出，并由 <a href="https://datatracker.ietf.org/doc/html/rfc8555">IETF RFC 8555</a> 标准化的协议。</p><p>它允许客户端自动完成 HTTPS 证书的：</p><ul><li>申请（Order）</li><li>域名验证（Authorization &amp; Challenge）</li><li>签发与下载（Certificate）</li></ul><hr><h2 id="🧱-核心概念"><a href="#🧱-核心概念" class="headerlink" title="🧱 核心概念"></a>🧱 核心概念</h2><table><thead><tr><th>概念</th><th>含义</th></tr></thead><tbody><tr><td><strong>Account</strong></td><td>注册者账户，标识用户（通过公钥）</td></tr><tr><td><strong>Order</strong></td><td>一次申请证书的请求，包含多个域名</td></tr><tr><td><strong>Authorization</strong></td><td>每个域名对应的授权验证流程</td></tr><tr><td><strong>Challenge</strong></td><td>实际用于验证的方式，如 DNS-01、HTTP-01、TLS-ALPN-01</td></tr><tr><td><strong>Finalize</strong></td><td>提交 CSR 的步骤，表明已完成所有验证</td></tr><tr><td><strong>Certificate</strong></td><td>最终由 CA 签发的证书内容</td></tr></tbody></table><hr><h2 id="✅-完整的证书申请流程（以-DNS-01-为例）"><a href="#✅-完整的证书申请流程（以-DNS-01-为例）" class="headerlink" title="✅ 完整的证书申请流程（以 DNS-01 为例）"></a>✅ 完整的证书申请流程（以 DNS-01 为例）</h2><h3 id="1-创建账户"><a href="#1-创建账户" class="headerlink" title="1. 创建账户"></a>1. 创建账户</h3><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">POST /acme/new-acct</span><br></pre></td></tr></table></figure><ul><li>客户端生成一对密钥</li><li>使用 JWS（带签名的 JSON）请求创建账户</li><li>返回 <code>Account URL</code></li></ul><hr><h3 id="2-创建-Order（订单）"><a href="#2-创建-Order（订单）" class="headerlink" title="2. 创建 Order（订单）"></a>2. 创建 Order（订单）</h3><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">POST /acme/new-order</span><br></pre></td></tr></table></figure><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;identifiers&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span> <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;dns&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;value&quot;</span><span class="punctuation">:</span> <span class="string">&quot;example.com&quot;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span> <span class="attr">&quot;type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;dns&quot;</span><span class="punctuation">,</span> <span class="attr">&quot;value&quot;</span><span class="punctuation">:</span> <span class="string">&quot;www.example.com&quot;</span> <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure><ul><li>返回一个 Order 对象，包含：<ul><li><code>Authorization URL</code>（每个域名一个）</li><li><code>Finalize URL</code>（CSR 提交用）</li></ul></li></ul><hr><h3 id="3-获取-Authorization（验证信息）"><a href="#3-获取-Authorization（验证信息）" class="headerlink" title="3. 获取 Authorization（验证信息）"></a>3. 获取 Authorization（验证信息）</h3><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GET /acme/authz/XXX</span><br></pre></td></tr></table></figure><ul><li>包含一个或多个 <code>Challenge</code><ul><li>DNS-01</li><li>HTTP-01</li><li>TLS-ALPN-01</li></ul></li></ul><hr><h3 id="4-响应-Challenge"><a href="#4-响应-Challenge" class="headerlink" title="4. 响应 Challenge"></a>4. 响应 Challenge</h3><p>以 DNS-01 为例：</p><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">记录名：_acme-challenge.example.com</span><br><span class="line">记录值：（token + account key 生成的值）</span><br></pre></td></tr></table></figure><p>客户端发起：</p><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">POST /acme/challenge/XYZ</span><br></pre></td></tr></table></figure><p>表示“我准备好了”，等待验证生效。</p><hr><h3 id="5-等待验证通过"><a href="#5-等待验证通过" class="headerlink" title="5. 等待验证通过"></a>5. 等待验证通过</h3><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GET /acme/authz/XYZ</span><br></pre></td></tr></table></figure><ul><li>轮询直到状态为 <code>&quot;valid&quot;</code> 或 <code>&quot;invalid&quot;</code></li></ul><hr><h3 id="6-Finalize-订单（提交-CSR）"><a href="#6-Finalize-订单（提交-CSR）" class="headerlink" title="6. Finalize 订单（提交 CSR）"></a>6. Finalize 订单（提交 CSR）</h3><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">POST /acme/finalize/XYZ</span><br></pre></td></tr></table></figure><ul><li>提交你的 CSR（证书签名请求）</li><li>返回的 Order 状态变为 <code>valid</code>，并附带 Certificate URL</li></ul><hr><h3 id="7-下载证书"><a href="#7-下载证书" class="headerlink" title="7. 下载证书"></a>7. 下载证书</h3><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">GET /acme/cert/XYZ</span><br></pre></td></tr></table></figure><ul><li>获取 PEM 格式的证书链（包含 leaf cert + CA cert）</li></ul><hr><h2 id="🔄-可恢复流程说明"><a href="#🔄-可恢复流程说明" class="headerlink" title="🔄 可恢复流程说明"></a>🔄 可恢复流程说明</h2><p>ACME 支持流程中断恢复：</p><ul><li>保存 <strong>Account URL</strong>（标识你是谁）</li><li>保存 <strong>Order URL</strong>（可以重复访问）</li><li>保存 <strong>Authorization&#x2F;Challenge 状态</strong></li><li>没有状态超时的步骤可以按需恢复继续执行</li></ul><hr><h2 id="📦-推荐实现方式"><a href="#📦-推荐实现方式" class="headerlink" title="📦 推荐实现方式"></a>📦 推荐实现方式</h2><table><thead><tr><th>Go 实现库</th><th>控制级别</th><th>说明</th></tr></thead><tbody><tr><td><a href="https://github.com/go-acme/lego"><code>lego</code></a></td><td>高</td><td>封装全面，支持多 DNS 服务商</td></tr><tr><td><a href="https://pkg.go.dev/golang.org/x/crypto/acme"><code>golang.org/x/crypto/acme</code></a></td><td>极高</td><td>原生协议控制，适合定制验证流程和持久化恢复等高级功能</td></tr></tbody></table><hr><h2 id="🔄-流程图（简化）"><a href="#🔄-流程图（简化）" class="headerlink" title="🔄 流程图（简化）"></a>🔄 流程图（简化）</h2><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">+---------+      +-------------+     +---------------+</span><br><span class="line">| Client  | ---&gt; | newAccount  | --&gt; |    Account    |</span><br><span class="line">+---------+      +-------------+     +---------------+</span><br><span class="line"></span><br><span class="line">+---------+      +-------------+     +---------------+</span><br><span class="line">| Client  | ---&gt; |  newOrder   | --&gt; |     Order     |</span><br><span class="line">+---------+      +-------------+     +--------+------+</span><br><span class="line">                                            |</span><br><span class="line">                                  +---------v----------+</span><br><span class="line">                                  |   Authorization[]   |</span><br><span class="line">                                  +----------+----------+</span><br><span class="line">                                             |</span><br><span class="line">                                +------------v-------------+</span><br><span class="line">                                |        Challenge[]        |</span><br><span class="line">                                +------------+--------------+</span><br><span class="line">                                             |</span><br><span class="line">                          +------------------v------------------+</span><br><span class="line">                          |    完成验证：DNS/HTTP 上传数据       |</span><br><span class="line">                          +------------------+------------------+</span><br><span class="line"></span><br><span class="line">+---------+      +-------------+     +---------------+</span><br><span class="line">| Client  | ---&gt; |  finalize   | --&gt; |  Order(Ready) |</span><br><span class="line">+---------+      +-------------+     +-------+-------+</span><br><span class="line">                                            |</span><br><span class="line">                                  +---------v----------+</span><br><span class="line">                                  |    Get Certificate  |</span><br><span class="line">                                  +---------------------+</span><br></pre></td></tr></table></figure><hr><h2 id="✅-总结"><a href="#✅-总结" class="headerlink" title="✅ 总结"></a>✅ 总结</h2><p>如果你需要：</p><ul><li>🔄 支持中断恢复</li><li>🎯 精确控制每个步骤</li><li>💾 本地持久化订单、认证、挑战状态</li></ul><p>推荐使用：</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> <span class="string">&quot;golang.org/x/crypto/acme&quot;</span></span><br></pre></td></tr></table></figure><p>配合手动实现持久化与控制逻辑，可获得最大自由度。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;h2 id=&quot;📖-什么是-ACME？&quot;&gt;&lt;a href=&quot;#📖-什么是-ACME？&quot; class=&quot;headerlink&quot; title=&quot;📖 什么是 ACME？&quot;&gt;&lt;/a&gt;📖 什么是 ACME？&lt;/h2&gt;&lt;p&gt;ACME（Automatic Certificate Man</summary>
+      
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    
+    <category term="技术" scheme="http://example.com/tags/%E6%8A%80%E6%9C%AF/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>人生苦短，我选游泳</title>
+    <link href="http://example.com/2025/07/07/202507/swimming/"/>
+    <id>http://example.com/2025/07/07/202507/swimming/</id>
+    <published>2025-07-06T16:00:00.000Z</published>
+    <updated>2025-07-07T12:13:27.680Z</updated>
+    
+    
+    
+    
+    <category term="随笔" scheme="http://example.com/categories/%E9%9A%8F%E7%AC%94/"/>
+    
+    
+    <category term="test" scheme="http://example.com/tags/test/"/>
+    
+    <category term="随笔" scheme="http://example.com/tags/%E9%9A%8F%E7%AC%94/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>兰亭集序</title>
+    <link href="http://example.com/2025/06/16/202506/2025-06-16-lantingjixu/"/>
+    <id>http://example.com/2025/06/16/202506/2025-06-16-lantingjixu/</id>
+    <published>2025-06-15T16:00:00.000Z</published>
+    <updated>2025-06-16T12:20:17.267Z</updated>
+    
+    <content type="html"><![CDATA[<blockquote><p>永和九年，岁在癸丑，暮春之初，会于会稽山阴之兰亭，修禊事也。<br>群贤毕至，少长咸集。<br>此地有崇山峻岭，茂林修竹，又有清流激湍，映带左右，引以为流觞曲水，列坐其次。<br>虽无丝竹管弦之盛，一觞一咏，亦足以畅叙幽情。  </p></blockquote><blockquote><p>是日也，天朗气清，惠风和畅。<br>仰观宇宙之大，俯察品类之盛，所以游目骋怀，足以极视听之娱，信可乐也。  </p></blockquote><blockquote><p>夫人之相与，俯仰一世。<br>或取诸怀抱，悟言一室之内；或因寄所托，放浪形骸之外。<br>虽趣舍万殊，静躁不同，当其欣于所遇，暂得于己，快然自足，不知老之将至；<br>及其所之既倦，情随事迁，感慨系之矣。<br>向之所欣，俯仰之间，已为陈迹，犹不能不以之兴怀，况修短随化，终期于尽！<br>古人云：“死生亦大矣。”<br>岂不痛哉！  </p></blockquote><blockquote><p>每览昔人兴感之由，若合一契，未尝不临文嗟悼，不能喻之于怀。<br>固知一死生为虚诞，齐彭殇为妄作。<br>后之视今，亦犹今之视昔，悲夫！<br>故列叙时人，录其所述，虽世殊事异，所以兴怀，其致一也。<br>后之览者，亦将有感于斯文。  </p></blockquote>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;blockquote&gt;
+&lt;p&gt;永和九年，岁在癸丑，暮春之初，会于会稽山阴之兰亭，修禊事也。&lt;br&gt;群贤毕至，少长咸集。&lt;br&gt;此地有崇山峻岭，茂林修竹，又有清流激湍，映带左右，引以为流觞曲水，列坐其次。&lt;br&gt;虽无丝竹管弦之盛，一觞一咏，亦足以畅叙幽情。  &lt;/p&gt;
+&lt;/blo</summary>
+      
+    
+    
+    
+    
+    <category term="有感" scheme="http://example.com/tags/%E6%9C%89%E6%84%9F/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>勇往直前</title>
+    <link href="http://example.com/2025/06/15/202506/2025-06-15-keep-moving/"/>
+    <id>http://example.com/2025/06/15/202506/2025-06-15-keep-moving/</id>
+    <published>2025-06-14T16:00:00.000Z</published>
+    <updated>2025-06-15T02:04:01.881Z</updated>
+    
+    <content type="html"><![CDATA[<p>【勇往直前：第1集 】 <a href="https://www.bilibili.com/bangumi/play/ep425640/?share_source=copy_web">https://www.bilibili.com/bangumi/play/ep425640/?share_source=copy_web</a></p><blockquote><p>万恶的大会员…</p></blockquote>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;【勇往直前：第1集 】 &lt;a href=&quot;https://www.bilibili.com/bangumi/play/ep425640/?share_source=copy_web&quot;&gt;https://www.bilibili.com/bangumi/play/ep42564</summary>
+      
+    
+    
+    
+    
+    <category term="随笔" scheme="http://example.com/tags/%E9%9A%8F%E7%AC%94/"/>
+    
+    <category term="视频" scheme="http://example.com/tags/%E8%A7%86%E9%A2%91/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>一个活在未来的人</title>
+    <link href="http://example.com/2024/02/29/202402/2024-02-29-a-feture-man/"/>
+    <id>http://example.com/2024/02/29/202402/2024-02-29-a-feture-man/</id>
+    <published>2024-02-28T16:00:00.000Z</published>
+    <updated>2025-06-16T10:57:46.873Z</updated>
+    
+    <content type="html"><![CDATA[<blockquote><p>“Yeah It’s on. ”</p></blockquote><p>我有个朋友，他最近很迷茫。</p><p>最近有个朋友和我聊天，说了他最近的困惑和迷茫的心态，让我颇为感慨。</p><p>他说，他一直觉得自己是一个活在未来的人。</p><p>怎么理解，我问。</p><p>他给的解释是这样的：</p><blockquote><p>我一直以来的思考和做事的方式都是以未来为方向的。好像冥冥中我知道自己未来是什么样的。过去和现在所有的一切都只是暂时的，都只是通向那个未来的一个路径而已。</p><p>所以这个过程中的所学所想、所以的经历对于我来说好像都是一个过场一样，而这个过程中我都不会为这些暂时的过程所绊住。因为我的心里无时无刻都有个声音在告诉我：你懂的，这一切都只是暂时的，是个过程而已。</p><p>因为觉得一切都是暂时的，所以可以理解期间所有的困难和阻碍；</p><p>因为觉得一切都是暂时的，所以可以接受期间所有的痛苦和煎熬；</p><p>因为觉得一切都是暂时的，所以可以忍受期间所有的失败和幻灭。</p><p>所有的这一切都是暂时的嘛，那个声音一直这么和我说，所有一切都可以继续着。</p></blockquote><p>我消化了一下他说的话，觉得这种活法是有点奇特，不过好像也没什么。说到底，谁不是这个世间的异类呢？ 我和他说，这样其实也没什么不好，不是么，你这么多年都这么过来了，为什么突然现在就迷茫了呢？</p><p>他一时之间没有回答我。我以为我的话让他更难受了。不过他也只是像喃喃自语一样的在重复着：是啊，这么多年都过来了，为什么突然现在就觉得不对了呢？</p><p>他像是在对我说，又像是在自己分析着，继续说：</p><blockquote><p>因为最近我突然开始意识到，我一直以为自己要到达的那个未来似乎是永远也无法到达的。数学家版本的龟兔赛跑的故事你听说过吧，大概就是那个感觉。<br>因为我永远会根据当前的现状来修正我想象着的那个未来，它是活的，时刻在变化的。</p></blockquote><p>我说：</p><blockquote><p>是啊，很多人也都是这样的啊，给自己设立一个目标，然后为了实现它而不断努力。然后再设立下一个目标，继续去追逐下去。<br>挺正能量的啊，你的这个未来和大多数人的目标其实差不多嘛，就是一个努力的动力，挺好的。</p></blockquote><p>他说：</p><blockquote><p>是啊，看起来也挺好的。可是，如果有一天你发现这个目标或者说这个未来你永远无法实现或到达呢？<br>你可能会说，你只要不断努力，说不定就能实现呢？</p></blockquote><blockquote><p>但是其实你知道的，见识过、经历过足够多的事情之后你就会知道的，有些未来 无论你怎么努力就是注定无法到达的。<br>一旦你意识到这一点，你知道那个未来注定是无法到达了，可是日子还是要一分一秒的过下去的，那么长久以来的生活方式就会让你的每时每刻都变成一种煎熬。</p></blockquote><p>我想我大概理解你的意思了，哀莫大于心死？</p><p>不是，是：知其不可奈何，而仍无法安之若命。因为你听过，见到过，你知道那个未来是真实存在的。只是，你已经无法到达了而已。</p><p>许久，我们都没有再继续说话。我不知道该说些啥，也不知道他在想些啥。</p><p>我突然回味过来，他的这种状态应该就是现在很多人躺平的缘由吧。</p><p>又过来一会后我假装开玩笑的语气问他，那你接下来打算怎么办，要躺平了吗？</p><p>不会，他很快的回答道。他这么肯定的说出来反而让我有些诧异。</p><p>他笑着说，我这个人就是这样悲观却积极的活着。</p><p>即使我悲观的认为那个未来我注定无法到达了。但我也不会躺平，可能让心存侥幸吧。总觉得如果奇迹出现的那一刻，而自己一直都躺着的，可能她也有可能因为没留意地下而看不到我吧。</p><p>说完我们两个都笑了起来。</p><p>挺好的，至少有些事可以继续做，不要让自己陷入虚无就行。我像是宽慰他，也像是告诫自己。</p><p>我突然想到前段时间看到的三一门左若童舍身证道未得，而道心破碎撒手而去的情节，莫名感慨道：看来大盈仙人还没有你的韧性足啊！</p><p>他听后也哈哈笑了起来。只是那笑声很快就融化在空气中。</p><p>最后我还是问出了那个问题：所以，你说的那个未来究竟是什么样的呢？</p><p>不重要了，他笑着说。</p><p>想想也是。</p><p>就像章北海最后说的那句话：没关系的，都一样。</p><p>完。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;blockquote&gt;
+&lt;p&gt;“Yeah It’s on. ”&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;我有个朋友，他最近很迷茫。&lt;/p&gt;
+&lt;p&gt;最近有个朋友和我聊天，说了他最近的困惑和迷茫的心态，让我颇为感慨。&lt;/p&gt;
+&lt;p&gt;他说，他一直觉得自己是一个活在未来的人。&lt;/p&gt;</summary>
+      
+    
+    
+    <content src="http://example.com/img/bg-2.jpeg" type="image"/>
+    
+    
+    
+    <category term="随笔" scheme="http://example.com/tags/%E9%9A%8F%E7%AC%94/"/>
+    
+    <category term="扯淡" scheme="http://example.com/tags/%E6%89%AF%E6%B7%A1/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>记录viper框架热加载配置文件的一个BUG</title>
+    <link href="http://example.com/2022/07/27/202207/2022-07-27-viper-conf-bug/"/>
+    <id>http://example.com/2022/07/27/202207/2022-07-27-viper-conf-bug/</id>
+    <published>2022-07-26T16:00:00.000Z</published>
+    <updated>2025-06-16T10:00:41.920Z</updated>
+    
+    <content type="html"><![CDATA[<blockquote><p>“还是老样子，又是一个背景交代。<br>最近公司一直在搞降本增效，各种优化。期间发现一些服务的配置文件热加载经常更新失败，一番分析之后，发现是框架里使用了 viper 的文件监控和热加载的功能，在一些特殊的使用姿势的情况下，会引发更新bug。”</p></blockquote><h2 id="具体场景"><a href="#具体场景" class="headerlink" title="具体场景"></a>具体场景</h2><p>关于热加载的使用方式，在脱敏之后的代码大概张下面这个样子：</p><figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><span class="line">package <span class="selector-tag">main</span></span><br><span class="line"></span><br><span class="line">import (</span><br><span class="line">    <span class="string">&quot;encoding/json&quot;</span></span><br><span class="line">    <span class="string">&quot;fmt&quot;</span></span><br><span class="line">    <span class="string">&quot;net/http&quot;</span></span><br><span class="line">    <span class="string">&quot;time&quot;</span></span><br><span class="line"></span><br><span class="line">    <span class="string">&quot;github.com/fsnotify/fsnotify&quot;</span></span><br><span class="line">    <span class="string">&quot;github.com/gin-gonic/gin&quot;</span></span><br><span class="line">    <span class="string">&quot;github.com/spf13/viper&quot;</span></span><br><span class="line">    <span class="string">&quot;github.com/willas/overseer&quot;</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="selector-tag">var</span> (</span><br><span class="line">    FusingConfig cfg</span><br><span class="line">)</span><br><span class="line">type cfg struct &#123;</span><br><span class="line">    Test item</span><br><span class="line">&#125;</span><br><span class="line">type item struct &#123;</span><br><span class="line">    List <span class="selector-attr">[]</span>int</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func <span class="selector-tag">main</span>() &#123;</span><br><span class="line">    serverAddr := fmt<span class="selector-class">.Sprintf</span>(<span class="string">&quot;:8989&quot;</span>)</span><br><span class="line">    overseer<span class="selector-class">.Run</span>(overseer.Config&#123;</span><br><span class="line">        Program: prog,</span><br><span class="line">        Address: serverAddr,</span><br><span class="line">        Debug:   true,</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func <span class="built_in">prog</span>(state overseer.State) &#123;</span><br><span class="line">    confFile := <span class="string">&quot;/data/demo/demo.toml&quot;</span></span><br><span class="line">    fmt<span class="selector-class">.Println</span>(<span class="string">&quot;cfgFile: &quot;</span>, confFile)</span><br><span class="line">    <span class="built_in">LoadConfig</span>(confFile)</span><br><span class="line">    viper<span class="selector-class">.WatchConfig</span>()</span><br><span class="line">    viper<span class="selector-class">.OnConfigChange</span>(<span class="built_in">func</span>(e fsnotify.Event) &#123;</span><br><span class="line">        fmt<span class="selector-class">.Println</span>(<span class="string">&quot;Config file changed:&quot;</span>, e.Op)</span><br><span class="line">        <span class="built_in">LoadConfig</span>(confFile)</span><br><span class="line">    &#125;)</span><br><span class="line">    err := http<span class="selector-class">.Serve</span>(state<span class="selector-class">.Listener</span>, gin<span class="selector-class">.New</span>())</span><br><span class="line">    <span class="keyword">if</span> err != nil &#123;</span><br><span class="line">        fmt<span class="selector-class">.Println</span>(<span class="string">&quot;server start failed&quot;</span>, err)</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">//等待以上结束</span></span><br><span class="line">    <span class="selector-tag">time</span><span class="selector-class">.Sleep</span>(<span class="selector-tag">time</span>.Second)</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">func <span class="built_in">LoadConfig</span>(cfgFile string) &#123;</span><br><span class="line">    viper<span class="selector-class">.SetConfigFile</span>(cfgFile)</span><br><span class="line">    err := viper<span class="selector-class">.ReadInConfig</span>() <span class="comment">// Find and read the config file</span></span><br><span class="line">    <span class="keyword">if</span> err != nil &#123;             <span class="comment">// Handle errors reading the config file</span></span><br><span class="line">        fmt<span class="selector-class">.Println</span>(<span class="string">&quot;viper read config error&quot;</span>, err)</span><br><span class="line">        return</span><br><span class="line">    &#125;</span><br><span class="line">    err = viper<span class="selector-class">.Unmarshal</span>(&amp;FusingConfig)</span><br><span class="line">    <span class="keyword">if</span> err != nil &#123;</span><br><span class="line">        fmt<span class="selector-class">.Println</span>(<span class="string">&quot;viper unmarshal error&quot;</span>, err)</span><br><span class="line">        return</span><br><span class="line">    &#125;</span><br><span class="line">    fByte, _ := json<span class="selector-class">.MarshalIndent</span>(FusingConfig, <span class="string">&quot;&quot;</span>, <span class="string">&quot;  &quot;</span>)</span><br><span class="line">    fmt<span class="selector-class">.Println</span>(<span class="string">&quot;changed file content:\n&quot;</span>, <span class="built_in">string</span>(fByte))</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h2 id="配置文件"><a href="#配置文件" class="headerlink" title="配置文件"></a>配置文件</h2><p>其中加载的配置文件内容如下：</p><figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="section">[test]</span></span><br><span class="line"><span class="attr">list</span>=[<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>]</span><br></pre></td></tr></table></figure><p>bug的表现场景是：当对list数组元素进行删减时，无法正确的更新删减后的内容</p><h2 id="截图说明"><a href="#截图说明" class="headerlink" title="截图说明"></a>截图说明</h2><p>二图胜千言：</p><p>初次加载配置内容：</p><p>可以看到热加载之后的配置文件内容没有符合预期。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;blockquote&gt;
+&lt;p&gt;“还是老样子，又是一个背景交代。&lt;br&gt;最近公司一直在搞降本增效，各种优化。期间发现一些服务的配置文件热加载经常更新失败，一番分析之后，发现是框架里使用了 viper 的文件监控和热加载的功能，在一些特殊的使用姿势的情况下，会引发更新bug。”&lt;/</summary>
+      
+    
+    
+    <content src="http://example.com/img/bg-1.jpeg" type="image"/>
+    
+    
+    
+    <category term="技术" scheme="http://example.com/tags/%E6%8A%80%E6%9C%AF/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>一个小工具</title>
+    <link href="http://example.com/2022/04/17/%E4%B8%80%E4%B8%AA%E5%B0%8F%E5%B7%A5%E5%85%B7/"/>
+    <id>http://example.com/2022/04/17/%E4%B8%80%E4%B8%AA%E5%B0%8F%E5%B7%A5%E5%85%B7/</id>
+    <published>2022-04-17T03:23:51.000Z</published>
+    <updated>2025-07-10T12:18:54.461Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="搞了一个分词统计的小工具"><a href="#搞了一个分词统计的小工具" class="headerlink" title="搞了一个分词统计的小工具"></a>搞了一个分词统计的小工具</h1><p>不废话了：<a href="https://jieba.qtter.com/">传送门</a></p><p>算是熟悉下一些快要遗忘的知识点吧！</p><p>以上。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;搞了一个分词统计的小工具&quot;&gt;&lt;a href=&quot;#搞了一个分词统计的小工具&quot; class=&quot;headerlink&quot; title=&quot;搞了一个分词统计的小工具&quot;&gt;&lt;/a&gt;搞了一个分词统计的小工具&lt;/h1&gt;&lt;p&gt;不废话了：&lt;a href=&quot;https://jieba.qt</summary>
+      
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>关于time/rate的一篇水贴</title>
+    <link href="http://example.com/2022/03/05/%E5%85%B3%E4%BA%8Etime-rate%E7%9A%84%E4%B8%80%E7%AF%87%E6%B0%B4%E8%B4%B4/"/>
+    <id>http://example.com/2022/03/05/%E5%85%B3%E4%BA%8Etime-rate%E7%9A%84%E4%B8%80%E7%AF%87%E6%B0%B4%E8%B4%B4/</id>
+    <published>2022-03-05T14:55:04.000Z</published>
+    <updated>2025-07-10T12:18:54.461Z</updated>
+    
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>2021 年底来扯扯淡（下）</title>
+    <link href="http://example.com/2022/02/21/2021%E4%B8%8B/"/>
+    <id>http://example.com/2022/02/21/2021%E4%B8%8B/</id>
+    <published>2022-02-21T09:08:10.000Z</published>
+    <updated>2025-07-10T12:18:54.459Z</updated>
+    
+    <content type="html"><![CDATA[<blockquote><p>又是一个上午请假的日子，想起来之前的年底扯扯淡的文章挖了个上、下篇的坑，现在来填上。</p></blockquote><p>日子一天天的过去，转移重心后的生活和工作都仍然在继续。</p><p>尝试 像 2021 年底来扯扯淡（上） 结尾说的那样的方式，遵从自己思考判断来做决定，而不是一味的为了工作里各种各样的公司战略、KPI、绩效而委曲求全着做一些其实毫无意义的事情。吃了很多年的饼之后，我终于意识到并且坚信：这些人并不是一个好的画饼师傅，而绝大数情况下，他们自己也心知肚明。</p><p>而在意识到这个情况之后，我也突然发现之前多年的工作里，一直是“偷懒”式工作，很长的时间里，甚至到了自我感动的地步。那时每天都很忙：</p><p>哇啊，公司又有了新的项目孵化目标了，加油啊，赶紧开发部署；</p><p>是啊，领导又有了新的方向想要尝试了，等不了，赶紧加班上线；</p><p>对啊，产品叕有了新的想法急需验证了，最终版，无脑迭代上架。</p><p>…</p><p>反反复复，无休无止。</p><p>那我就只管努力（偷懒）就好了啊，还思考啥。<br>忙吗？确实忙。可是永远是在为别人忙啊！<br>我就像个兵线上的小兵，永远固定路线、固定速度，被英雄们带着节奏漫无目的的走着、攻击着，然后倒下，最后还是变成别人的升级经验，并且不断重复。<br>就这样，一晃好多年。</p><p><strong>“那能怎么办呢？”</strong></p><p>是啊，那能怎么办呢？很多次和自己、和别人的聊天里，都会有这个疑问。被带着节奏太久了，无脑忙碌太久了，我们已经习惯了，甚至麻木了。太累了，太忙了，不想思考了。<br>只是每每总有那么一个时刻，我看着斧王的巨斧就在想：总有人要成为的英雄，为什么不能是我呢？<br>或者退一步，即使我终究是一个小兵，那我为啥不做一个有自己节奏的小兵呢？<br>那一刻，我的视角终于开始切换。</p><p>于是，我总结出了可能是我的人生迄今为止最重要的一个结论，并决定当做我的人生的第一优先级的奥义：</p><p><strong>不论工作还是生活（当然还有 DOTA ），永远要保持自己的节奏！</strong></p><p>基于自己当前的现状简单的分析之后，确认可能产生的影响和最坏的结果，感觉一切OK，我开始深信不疑的践行。顺带着，啪！我打开了那个情绪开关。<br>所谓树立中心思想，大刀阔斧改革，战略上藐视一切画饼师傅，战术上细化自己的目标和节奏，以此为前提，毫不迟疑的拒绝掉一切不合理的要求。</p><p>“什么，临时有项目需要交接要出差一段时间？”</p><p>“我不去，安排其他同事吧”</p><p>“什么，有个紧急的需求需要支持下？”</p><p>“当前在做需求，直接提个领导排好优先级”</p><p>“什么，项目紧急需要缩短工期加班？”</p><p>“周末有安排，不加班，自己去找领导协调”</p><p>还是那句话，一切的紧急都是基于你的节奏：who TM cares!</p><p>按照这个节奏工作下来，发现真TM爽啊！而且，最后你会发现，其实也不会有什么大影响。甚至于，保持“强硬”的态度之后会发现，之前不好沟通协调的事情竟然也开始变得容易了起来。人性从来就是这样。</p><p>所谓，好好先生并不能让结果事事好好。讨好型人格更是毫无必要。<br>只是，性格潜移默化，改变无法一蹴而就，意识到就好，慢慢改善。<br>工作学习节奏调整好了之后，接下来可能就是发育期吧，一切还是要慢慢来。</p><p>这个时候，我遇见了我的那个她。</p><p>懂得我说的：</p><blockquote><p>“不要回答！ 不要回答！！ 不要回答！！！”</p></blockquote><p>梗的她。</p><p>懂得大刘笔下</p><blockquote><p>“只送大脑！”</p></blockquote><p>的疯狂和浪漫的她。</p><p>这让我不得不感慨缘分的奇妙。甚至后面我回想起来，很难想清楚这是不是得益于我这段时间的想法改变之后整个人生活状态的蜕变。不能早，也不能晚，只能是这个时候的遇见才是最正确的时机。</p><p>回想着不知道从多久远的以前起，初中？高中？，我被每日负面、悲观、绝望的情绪裹挟着。在快要不堪重负而垮掉时，我开始有意识的训练自己的情绪。我想把自己机器化、数字化，想象着自己的大脑中有一个情绪开关。</p><p>啪！关闭它，啊，真好！我不再有任何的情绪了。</p><p>啪！打开它，啊，呼吸，忍受无数汹涌如潮水般的情绪把我吞没！</p><p>就这样，一天一天，不停的关闭、打开，关闭打开…</p><p>经过不知道多少次这样近乎病态式的疯狂训练之后，我觉得我成功了。<br>之后的一些年里，我差不多无限期的关闭着这个开关，这样我觉得生活不那么沉重了，我觉得轻松。如果有个情绪的电图，那这些年我的情绪电图应该几乎是一条长长而乏味的直线。<br>然而人毕竟是人啊，和机器不同啊。如果只是仅仅为了活得轻松而舍弃掉所以的情绪，那又有什么意义呢？</p><p>所以，<strong>做个人吧！</strong> 哈哈哈 🙂</p><p>现在坐在这里，想着遇见她之后这段时间里一起经历的各种各样的事情和看过的风景，竟然也一时间不知道从何讲起。只是这段时间里，我开始感受到我的情绪了。很开心。原来生活或许不如意事十之八九，却依然让我觉得值得和美好！</p><p>总之，感谢生活，感谢大刘，感谢她 🙂</p><p>到这里，2021年底的这篇扯淡基本该结束了。上、下这两篇里算是把我这一年的感悟和改变理了七七八八了。后面的日子里，继续保持这自己的节奏，猥琐发育吧！</p><p>共勉：<strong>永远要保持自己的节奏！</strong></p><p>以上。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;blockquote&gt;
+&lt;p&gt;又是一个上午请假的日子，想起来之前的年底扯扯淡的文章挖了个上、下篇的坑，现在来填上。&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;日子一天天的过去，转移重心后的生活和工作都仍然在继续。&lt;/p&gt;
+&lt;p&gt;尝试 像 2021 年底来扯扯淡（上） 结尾说的那</summary>
+      
+    
+    
+    
+    
+  </entry>
+  
+  <entry>
+    <title>nsq</title>
+    <link href="http://example.com/2022/01/26/mq/nsq/index/"/>
+    <id>http://example.com/2022/01/26/mq/nsq/index/</id>
+    <published>2022-01-26T07:36:10.000Z</published>
+    <updated>2025-07-10T12:18:54.461Z</updated>
+    
+    <content type="html"><![CDATA[<h1 id="关于nsq的问题"><a href="#关于nsq的问题" class="headerlink" title="关于nsq的问题"></a>关于nsq的问题</h1><p><img src="/images/nsq/13257331-ad44d7516e6e53a5.webp" alt="topic,channel和consumer"></p><p><img src="/images/nsq/13257331-68f2845de0c8dcfa.webp" alt="consumer"></p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;h1 id=&quot;关于nsq的问题&quot;&gt;&lt;a href=&quot;#关于nsq的问题&quot; class=&quot;headerlink&quot; title=&quot;关于nsq的问题&quot;&gt;&lt;/a&gt;关于nsq的问题&lt;/h1&gt;&lt;p&gt;&lt;img src=&quot;/images/nsq/13257331-ad44d7516e6e53a</summary>
+      
+    
+    
+    
+    <category term="MessageQueue" scheme="http://example.com/categories/MessageQueue/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>kafaka</title>
+    <link href="http://example.com/2022/01/26/mq/kafka/index/"/>
+    <id>http://example.com/2022/01/26/mq/kafka/index/</id>
+    <published>2022-01-26T07:35:52.000Z</published>
+    <updated>2025-07-10T12:18:54.461Z</updated>
+    
+    <content type="html"><![CDATA[<!-- toc --><h1 id="kafka-架构图"><a href="#kafka-架构图" class="headerlink" title="kafka 架构图"></a>kafka 架构图</h1><p><img src="/images/kafka/architecture.png" alt="kafka架构图"></p><h1 id="关于Kafka-的问题"><a href="#关于Kafka-的问题" class="headerlink" title="关于Kafka 的问题"></a>关于Kafka 的问题</h1><h2 id="kafka-是怎么做到-高吞吐率、速度快的？"><a href="#kafka-是怎么做到-高吞吐率、速度快的？" class="headerlink" title="kafka 是怎么做到 高吞吐率、速度快的？"></a>kafka 是怎么做到 高吞吐率、速度快的？</h2><h3 id="顺序读写"><a href="#顺序读写" class="headerlink" title="顺序读写"></a>顺序读写</h3><h4 id="partition-并行处理"><a href="#partition-并行处理" class="headerlink" title="partition 并行处理"></a>partition 并行处理</h4><h3 id="Page-Cache"><a href="#Page-Cache" class="headerlink" title="Page Cache"></a>Page Cache</h3><h3 id="零拷贝"><a href="#零拷贝" class="headerlink" title="零拷贝"></a>零拷贝</h3><p><img src="/images/kafka/zerocopy.svg" alt="零拷贝原理"></p><h4 id="mmap、sendfile"><a href="#mmap、sendfile" class="headerlink" title="mmap、sendfile"></a>mmap、sendfile</h4><ul><li>Producer生产的数据持久化到broker，采用mmap文件映射</li><li>Customer从broker读取数据，采用sendfile，将磁盘文件读到OS内核缓冲区后，直接转到socket buffer进行网络发送。</li></ul><h4 id="用户缓冲区、内核缓冲区、socket-buffer、NIC-buffer"><a href="#用户缓冲区、内核缓冲区、socket-buffer、NIC-buffer" class="headerlink" title="用户缓冲区、内核缓冲区、socket buffer、NIC buffer"></a>用户缓冲区、内核缓冲区、socket buffer、NIC buffer</h4><h4 id="定期-flush-到磁盘"><a href="#定期-flush-到磁盘" class="headerlink" title="定期 flush 到磁盘"></a>定期 flush 到磁盘</h4><h3 id="分区分段-索引"><a href="#分区分段-索引" class="headerlink" title="分区分段+索引"></a>分区分段+索引</h3><h3 id="数据压缩"><a href="#数据压缩" class="headerlink" title="数据压缩"></a>数据压缩</h3><h3 id="批量读写"><a href="#批量读写" class="headerlink" title="批量读写"></a>批量读写</h3><h2 id="kafka-如何保证不重复消费又不丢失数据？"><a href="#kafka-如何保证不重复消费又不丢失数据？" class="headerlink" title="kafka 如何保证不重复消费又不丢失数据？"></a>kafka 如何保证不重复消费又不丢失数据？</h2><p>首先我们要了解的是message delivery semantic 也就是消息传递语义。</p><p>这是一个通用的概念，也就是消息传递过程中消息传递的保证性。</p><p>分为三种：</p><ul><li><p>最多一次（at most once）:</p><p>消息可能丢失也可能被处理，但最多只会被处理一次。<br>可能丢失 不会重复</p></li><li><p>至少一次（at least once）: 消息不会丢失，但可能被处理多次。<br>可能重复 不会丢失</p></li><li><p>精确传递一次（exactly once）: 消息被处理且只会被处理一次。</p><p>不丢失 不重复 就一次</p></li></ul><p>而kafka其实有两次消息传递，一次生产者发送消息给kafka，一次消费者去kafka消费消息。</p><p>两次传递都会影响最终结果，</p><p>两次都是精确一次，最终结果才是精确一次。</p><p>两次中有一次会丢失消息，或者有一次会重复，那么最终的结果就是可能丢失或者重复的。</p><h3 id="分布式存储"><a href="#分布式存储" class="headerlink" title="分布式存储"></a>分布式存储</h3><h3 id="producer-端"><a href="#producer-端" class="headerlink" title="producer 端"></a>producer 端</h3><h4 id="幂等的producer（idempotent-producer）"><a href="#幂等的producer（idempotent-producer）" class="headerlink" title="幂等的producer（idempotent producer）"></a>幂等的producer（idempotent producer）</h4><h4 id="Kafka-的-ISR-机制"><a href="#Kafka-的-ISR-机制" class="headerlink" title="Kafka 的 ISR 机制"></a>Kafka 的 ISR 机制</h4><p>所以如果要让写入 Kafka 的数据不丢失，你需要保证如下几点：</p><ul><li><p>每个 Partition 都至少得有 1 个 Follower 在 ISR 列表里</p></li><li><p>每次写入数据的时候，都要求至少写入 Partition Leader 成功，同时还有至少一个 ISR 里的 Follower 也写入成功，才算这个写入是成功了。</p></li></ul><p>如果不满足上述两个条件，那就一直写入失败，让生产系统不停的尝试重试，直到满足上述两个条件，然后才能认为写入成功。</p><p>按照上述思路去配置相应的参数，才能保证写入 Kafka 的数据不会丢失。</p><h2 id="参考文献"><a href="#参考文献" class="headerlink" title="参考文献"></a>参考文献</h2><ul><li><p><a href="https://zhuanlan.zhihu.com/p/120967989">Kafka为什么吞吐量大、速度快？</a></p></li><li><p><a href="https://zhuanlan.zhihu.com/p/78335525">Kafka零拷贝</a></p></li><li><p><a href="https://zhuanlan.zhihu.com/p/183808742">终于知道Kafka为什么这么快了！</a></p></li><li><p><a href="https://www.cnblogs.com/gxyandwmm/p/11432598.html">Kafka如何保证百万级写入速度以及保证不丢失不重复消费</a></p></li></ul>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;!-- toc --&gt;
+
+&lt;h1 id=&quot;kafka-架构图&quot;&gt;&lt;a href=&quot;#kafka-架构图&quot; class=&quot;headerlink&quot; title=&quot;kafka 架构图&quot;&gt;&lt;/a&gt;kafka 架构图&lt;/h1&gt;&lt;p&gt;&lt;img src=&quot;/images/kafka/arch</summary>
+      
+    
+    
+    
+    <category term="MessageQueue" scheme="http://example.com/categories/MessageQueue/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>2021 年底来扯扯淡（上）</title>
+    <link href="http://example.com/2021/12/10/2021%E4%B8%8A/"/>
+    <id>http://example.com/2021/12/10/2021%E4%B8%8A/</id>
+    <published>2021-12-10T04:50:44.000Z</published>
+    <updated>2025-07-10T12:18:54.459Z</updated>
+    
+    <content type="html"><![CDATA[<p>最近可能由于工（刀）作（塔）过于辛苦，导致我今天早上闹钟响的时候，只有手醒了。<br>于是睡过头了。<br>然后顺手请个半天假。<br>一套操作感觉就是这么行云流水。</p><p>所以现在有时间坐在电脑旁来扯这个淡。</p><p>想想2021年马上就要过去了，时间真快啊！<br>仔细回顾下今年都经历了啥呢？好像大的分界点是从年中6月份项目组解散开始的吧。如果是在小说里，这个一定是一个很好的故事展开线，哈哈。<br>6月份的时候，在大家刚结束了上周末的一次常规加班之后的一个周一，领导不出所料的突然宣布：项目组原地爆炸。现在我回过头来看感觉很魔幻。那种感觉就像，你们一队人正在和对面开团：<br>我方斧王先手果断跳吼直接控住对面所有人！<br>宙斯直接开大！<br>sven开大跳上去，准备团灭对面！<br>然后，停电了！！！<br>沉默了一会后，大家揪着的一颗心总算了放了下来。因为真实的情况是，斧王sven其实在对面:)。<br>接下来差不多一个月的时间里，事情的发展和大多数无节操的的IT公司的剧情没什么太大区别：临时抽调一个经验丰富的HR来挨个找大家言辞亲切的谈话，大概的内容也很明白：要么流放到其他项目组，要么自己滚，别想着N+1。<br>本想着争取一下的，无奈发现孤立无援，领导也来劝：公司也不容易啊。<br>大家相视而笑，悟了。<br>再后面的一段时间里，大家有的自谋出路走了，有的迫于无奈接受流放，有的不知所踪。最终，大家都有了光明的穷途。</p><p>然后时间就到了7月份。我开始了我长达半年的流放的日子，而且似乎看起来结束的日子还是遥遥无期。</p><p>现在细细回想起来，有点塞翁失马的感觉。</p><p>这下半年的时间可以说是我从毕业工作到现在，业务工作最少的一段时间了。正是因为这样，我有了大把大把的时间来思考、反思、总结。</p><p>最后反思下来的结论是：人不能太闲啊！真的好讽刺啊！  </p><p><strong>这个时代的节奏过于碎片和快速，使得你渐渐变得已经无法系统性的思考问题。</strong></p><p>我们总是为了这样那样的事情左右，为了眼前的问题寻找临时性的救火方案。这是一个漩涡陷阱，让所有深陷其中的人终日疲于奔命，无法停下，也无法逃脱。而这就是我这近十年的工作和生活状态啊！<br>每年，每月，每一天，我就在这个漩涡中努力的前进着以保持自己不会被吞噬。这样的日子不停歇的循环往复着，就像那个一日囚里的人一样。庆幸的是，心里也一直有着挣脱的期盼和希望，总觉得这些都是暂时的，会有那么一天事情会迎来转机。这些年的日子里，竟然就是靠着这个近乎盲目的信念支撑着走了过来。</p><p>而且，似乎还要这么走下去。<br>这就是生活的真相啊！一切并不会想电影里演的那样励志：突然有一天，主角有了奇遇一切都开挂般的好了起来。一切似乎都没么变化。<br>然后，项目黄了。这个漩涡似乎？竟然？真的停了下来。<br>经过短暂的眩晕之后，我发现自己很快的适应了起来。<br>这期间，我也终于第一次完整的看完了一届TI。当然，其中详情就不去过多描述了，总之全村的希望最后败给了一个颠勺的大厨，就是这么简单。<br>然后，经过了几天的短暂抑郁之后，我发现好像悟了！<br>因为，我突然发现我姓张，张三的张。</p><p><strong>张三说：人要接受自己的有限性。</strong></p><p>这种感觉很奇妙。这个事情对我来说，就好像是我在打野的时候突然插了个眼在高台上。我感觉自己的生活突然明亮了起来，视野清晰！<br>人甚至一下子变得洒脱起来，一种莫名其妙的自信油然而生！我感觉自己浑身充满了能量！<br>我隐隐的感觉到：我到6了！  </p><p>于是，我开始试着把重心从工作转移到生活中去。我发现没有996，没有那些感动自己、缓解领导焦虑的加班，天也没有塌下来。我开始慢慢体会到了什么是真实感。<br>生活，也慢慢的变得美好起来。  </p><p>未完，待续。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;最近可能由于工（刀）作（塔）过于辛苦，导致我今天早上闹钟响的时候，只有手醒了。&lt;br&gt;于是睡过头了。&lt;br&gt;然后顺手请个半天假。&lt;br&gt;一套操作感觉就是这么行云流水。&lt;/p&gt;
+&lt;p&gt;所以现在有时间坐在电脑旁来扯这个淡。&lt;/p&gt;
+&lt;p&gt;想想2021年马上就要过去了，时间真快啊</summary>
+      
+    
+    
+    
+    <category term="我当然在扯淡" scheme="http://example.com/categories/%E6%88%91%E5%BD%93%E7%84%B6%E5%9C%A8%E6%89%AF%E6%B7%A1/"/>
+    
+    
+    <category term="扯淡" scheme="http://example.com/tags/%E6%89%AF%E6%B7%A1/"/>
+    
+    <category term="2021" scheme="http://example.com/tags/2021/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>golang断言：一个蛋疼的处理场景</title>
+    <link href="http://example.com/2021/11/24/go-type-assertion/"/>
+    <id>http://example.com/2021/11/24/go-type-assertion/</id>
+    <published>2021-11-24T07:33:57.000Z</published>
+    <updated>2025-07-10T12:18:54.459Z</updated>
+    
+    <content type="html"><![CDATA[<p>这一切都来源于一个蛋疼的需求场景处理：</p><p>因为历史原因，一个需要用到的JSON数据被整个缓存进Redis的一个key中，大概如下：</p><figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="number">127.0</span>.<span class="number">0.1</span>:<span class="number">6379</span><span class="operator">&gt;</span> <span class="keyword">get</span> dt</span><br><span class="line"><span class="string">&quot;&#123;<span class="subst">\&quot;</span>address<span class="subst">\&quot;</span>:[&#123;<span class="subst">\&quot;</span>duration<span class="subst">\&quot;</span>:90,<span class="subst">\&quot;</span>format<span class="subst">\&quot;</span>:<span class="subst">\&quot;</span>mp4<span class="subst">\&quot;</span>,<span class="subst">\&quot;</span>url<span class="subst">\&quot;</span>:<span class="subst">\&quot;</span>xxx.mp4<span class="subst">\&quot;</span>,<span class="subst">\&quot;</span>ext<span class="subst">\&quot;</span>:<span class="subst">\&quot;</span>&#123;<span class="subst">\\</span><span class="subst">\&quot;</span>key<span class="subst">\\</span><span class="subst">\&quot;</span>:<span class="subst">\\</span><span class="subst">\&quot;</span>val<span class="subst">\\</span><span class="subst">\&quot;</span>&#125;<span class="subst">\&quot;</span>&#125;,&#123;<span class="subst">\&quot;</span>duration<span class="subst">\&quot;</span>:90,<span class="subst">\&quot;</span>format<span class="subst">\&quot;</span>:<span class="subst">\&quot;</span>mp4<span class="subst">\&quot;</span>,<span class="subst">\&quot;</span>url<span class="subst">\&quot;</span>:<span class="subst">\&quot;</span>xxx.mp4<span class="subst">\&quot;</span>,<span class="subst">\&quot;</span>ext<span class="subst">\&quot;</span>:<span class="subst">\&quot;</span>&#123;<span class="subst">\\</span><span class="subst">\&quot;</span>key<span class="subst">\\</span><span class="subst">\&quot;</span>:<span class="subst">\\</span><span class="subst">\&quot;</span>val<span class="subst">\\</span><span class="subst">\&quot;</span>&#125;<span class="subst">\&quot;</span>&#125;],<span class="subst">\&quot;</span>value<span class="subst">\&quot;</span>:<span class="subst">\&quot;</span>web<span class="subst">\&quot;</span>&#125;&quot;</span></span><br><span class="line"><span class="number">127.0</span>.<span class="number">0.1</span>:<span class="number">6379</span><span class="operator">&gt;</span></span><br></pre></td></tr></table></figure><p>这里还是做了脱敏处理，实际的情形JSON的层级更深…<br>格式化显示的JSON结构大概是这样：  </p><figure class="highlight nix"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;address&quot;</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">&quot;duration&quot;</span>: <span class="number">90</span>,</span><br><span class="line">            <span class="string">&quot;format&quot;</span>: <span class="string">&quot;mp4&quot;</span>,</span><br><span class="line">            <span class="string">&quot;url&quot;</span>: <span class="string">&quot;xxx.mp4&quot;</span>,</span><br><span class="line">            <span class="string">&quot;ext&quot;</span>: <span class="string">&quot;&#123;<span class="char escape_">\&quot;</span>key<span class="char escape_">\&quot;</span>:<span class="char escape_">\&quot;</span>val<span class="char escape_">\&quot;</span>&#125;&quot;</span></span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">&quot;duration&quot;</span>: <span class="number">90</span>,</span><br><span class="line">            <span class="string">&quot;format&quot;</span>: <span class="string">&quot;mp4&quot;</span>,</span><br><span class="line">            <span class="string">&quot;url&quot;</span>: <span class="string">&quot;xxx.mp4&quot;</span>,</span><br><span class="line">            <span class="string">&quot;ext&quot;</span>: <span class="string">&quot;&#123;<span class="char escape_">\&quot;</span>key<span class="char escape_">\&quot;</span>:<span class="char escape_">\&quot;</span>val<span class="char escape_">\&quot;</span>&#125;&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    ],</span><br><span class="line">    <span class="string">&quot;value&quot;</span>: <span class="string">&quot;web&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>现在要做的是： address 里的每个元素的 url 字段需要更新。</p><p>现在知道的是：address 的值 是一个数组，数组的每个元素是一个map[string]interface{} 类型，map里的元素除了 <strong>“url”: “xxx.mp4”</strong>, 其他的数量不确定</p><p>实现代码大概如下（方便展示，省略了Redis读写的步骤）：</p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">detailByte := []<span class="type">byte</span>(<span class="string">`&#123;&quot;address&quot;:[&#123;&quot;duration&quot;:90,&quot;format&quot;:&quot;mp4&quot;,&quot;url&quot;:&quot;xxx.mp4&quot;,&quot;ext&quot;:&quot;&#123;\&quot;key\&quot;:\&quot;val\&quot;&#125;&quot;&#125;,&#123;&quot;duration&quot;:90,&quot;format&quot;:&quot;mp4&quot;,&quot;url&quot;:&quot;xxx.mp4&quot;,&quot;ext&quot;:&quot;&#123;\&quot;key\&quot;:\&quot;val\&quot;&#125;&quot;&#125;],&quot;value&quot;:&quot;web&quot;&#125;`</span>)</span><br><span class="line">detail := <span class="built_in">make</span>(<span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>&#123;&#125;, <span class="number">0</span>)</span><br><span class="line">json.Unmarshal(detailByte, &amp;detail)</span><br><span class="line">formatJson, _ := json.MarshalIndent(detail, <span class="string">&quot;&quot;</span>, <span class="string">&quot;    &quot;</span>)</span><br><span class="line">fmt.Println(<span class="string">&quot;before: &quot;</span>, <span class="type">string</span>(formatJson))</span><br><span class="line"><span class="keyword">if</span> address, ok := detail[<span class="string">&quot;address&quot;</span>]; ok &#123;</span><br><span class="line"><span class="keyword">if</span> item, ok2 := address.([]<span class="keyword">interface</span>&#123;&#125;); ok2 &#123;</span><br><span class="line"><span class="keyword">for</span> index, value := <span class="keyword">range</span> item &#123;</span><br><span class="line"><span class="keyword">if</span> vMap, ok3 := value.(<span class="keyword">map</span>[<span class="type">string</span>]<span class="keyword">interface</span>&#123;&#125;); ok3 &#123;</span><br><span class="line"><span class="keyword">if</span> _, ok4 := vMap[<span class="string">&quot;url&quot;</span>];ok4 &#123;</span><br><span class="line">vMap[<span class="string">&quot;url&quot;</span>] = <span class="string">&quot;wtf.mp4&quot;</span></span><br><span class="line">&#125;</span><br><span class="line">item[index] = vMap</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">detail[<span class="string">&quot;address&quot;</span>] = item</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">formatJson, _ = json.MarshalIndent(detail, <span class="string">&quot;&quot;</span>, <span class="string">&quot;    &quot;</span>)</span><br><span class="line">fmt.Println(<span class="string">&quot;after: &quot;</span>, <span class="type">string</span>(formatJson))</span><br></pre></td></tr></table></figure><p>运行结果：</p><figure class="highlight nix"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="params">before:</span>  &#123;</span><br><span class="line">    <span class="string">&quot;address&quot;</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">&quot;duration&quot;</span>: <span class="number">90</span>,</span><br><span class="line">            <span class="string">&quot;ext&quot;</span>: <span class="string">&quot;&#123;<span class="char escape_">\&quot;</span>key<span class="char escape_">\&quot;</span>:<span class="char escape_">\&quot;</span>val<span class="char escape_">\&quot;</span>&#125;&quot;</span>,</span><br><span class="line">            <span class="string">&quot;format&quot;</span>: <span class="string">&quot;mp4&quot;</span>,</span><br><span class="line">            <span class="string">&quot;url&quot;</span>: <span class="string">&quot;xxx.mp4&quot;</span></span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">&quot;duration&quot;</span>: <span class="number">90</span>,</span><br><span class="line">            <span class="string">&quot;ext&quot;</span>: <span class="string">&quot;&#123;<span class="char escape_">\&quot;</span>key<span class="char escape_">\&quot;</span>:<span class="char escape_">\&quot;</span>val<span class="char escape_">\&quot;</span>&#125;&quot;</span>,</span><br><span class="line">            <span class="string">&quot;format&quot;</span>: <span class="string">&quot;mp4&quot;</span>,</span><br><span class="line">            <span class="string">&quot;url&quot;</span>: <span class="string">&quot;xxx.mp4&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    ],</span><br><span class="line">    <span class="string">&quot;value&quot;</span>: <span class="string">&quot;web&quot;</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="params">after:</span>  &#123;</span><br><span class="line">    <span class="string">&quot;address&quot;</span>: [</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">&quot;duration&quot;</span>: <span class="number">90</span>,</span><br><span class="line">            <span class="string">&quot;ext&quot;</span>: <span class="string">&quot;&#123;<span class="char escape_">\&quot;</span>key<span class="char escape_">\&quot;</span>:<span class="char escape_">\&quot;</span>val<span class="char escape_">\&quot;</span>&#125;&quot;</span>,</span><br><span class="line">            <span class="string">&quot;format&quot;</span>: <span class="string">&quot;mp4&quot;</span>,</span><br><span class="line">            <span class="string">&quot;url&quot;</span>: <span class="string">&quot;wtf.mp4&quot;</span></span><br><span class="line">        &#125;,</span><br><span class="line">        &#123;</span><br><span class="line">            <span class="string">&quot;duration&quot;</span>: <span class="number">90</span>,</span><br><span class="line">            <span class="string">&quot;ext&quot;</span>: <span class="string">&quot;&#123;<span class="char escape_">\&quot;</span>key<span class="char escape_">\&quot;</span>:<span class="char escape_">\&quot;</span>val<span class="char escape_">\&quot;</span>&#125;&quot;</span>,</span><br><span class="line">            <span class="string">&quot;format&quot;</span>: <span class="string">&quot;mp4&quot;</span>,</span><br><span class="line">            <span class="string">&quot;url&quot;</span>: <span class="string">&quot;wtf.mp4&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    ],</span><br><span class="line">    <span class="string">&quot;value&quot;</span>: <span class="string">&quot;web&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>怎么说呢，实现了感觉又没有真正实现…</p><p>哎，蛋疼。</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;这一切都来源于一个蛋疼的需求场景处理：&lt;/p&gt;
+&lt;p&gt;因为历史原因，一个需要用到的JSON数据被整个缓存进Redis的一个key中，大概如下：&lt;/p&gt;
+&lt;figure class=&quot;highlight swift&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;</summary>
+      
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    <category term="Golang" scheme="http://example.com/categories/Golang/"/>
+    
+    
+  </entry>
+  
+  <entry>
+    <title>而今天是你剩余人生的开始</title>
+    <link href="http://example.com/2021/11/15/%E8%80%8C%E4%BB%8A%E5%A4%A9%E6%98%AF%E4%BD%A0%E5%89%A9%E4%BD%99%E4%BA%BA%E7%94%9F%E7%9A%84%E5%BC%80%E5%A7%8B/"/>
+    <id>http://example.com/2021/11/15/%E8%80%8C%E4%BB%8A%E5%A4%A9%E6%98%AF%E4%BD%A0%E5%89%A9%E4%BD%99%E4%BA%BA%E7%94%9F%E7%9A%84%E5%BC%80%E5%A7%8B/</id>
+    <published>2021-11-15T03:18:31.000Z</published>
+    <updated>2025-07-10T12:18:54.461Z</updated>
+    
+    <content type="html"><![CDATA[<blockquote><p>在最后</p><p>总会看见自己</p><p>你一直知道</p><p>那是尽头</p><p>也是开始</p></blockquote>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;blockquote&gt;
+&lt;p&gt;在最后&lt;/p&gt;
+&lt;p&gt;总会看见自己&lt;/p&gt;
+&lt;p&gt;你一直知道&lt;/p&gt;
+&lt;p&gt;那是尽头&lt;/p&gt;
+&lt;p&gt;也是开始&lt;/p&gt;
+&lt;/blockquote&gt;
+</summary>
+      
+    
+    
+    
+    <category term="我当然在扯淡" scheme="http://example.com/categories/%E6%88%91%E5%BD%93%E7%84%B6%E5%9C%A8%E6%89%AF%E6%B7%A1/"/>
+    
+    
+    <category term="扯淡" scheme="http://example.com/tags/%E6%89%AF%E6%B7%A1/"/>
+    
+    <category term="而今天是你剩余人生的开始" scheme="http://example.com/tags/%E8%80%8C%E4%BB%8A%E5%A4%A9%E6%98%AF%E4%BD%A0%E5%89%A9%E4%BD%99%E4%BA%BA%E7%94%9F%E7%9A%84%E5%BC%80%E5%A7%8B/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>并发安全&amp;锁&amp;原子操作&amp;CAS&amp;MESI</title>
+    <link href="http://example.com/2021/10/30/lock-atomic-cas-mesi/"/>
+    <id>http://example.com/2021/10/30/lock-atomic-cas-mesi/</id>
+    <published>2021-10-30T04:41:14.000Z</published>
+    <updated>2025-07-10T12:18:54.460Z</updated>
+    
+    <content type="html"><![CDATA[<blockquote><p>“是时候好好理清那些重要的基础概念和系统知识了” ——很久之后，当你从泥泞的业务项目代码中脱身时，总是会这样想到。<br>本文主要是对阅读过的一些好的博客文章做一个汇总整理（参考博客地址见文章末尾），为了查阅方便，以及防止哪天这些博客的文章意外不见</p></blockquote><p>很长时间以来，对于锁&amp;原子操作这些概念术语总是理解的很模糊，知其然不知所以然。想尽量的理清它们在通常意义上在大家口中所指的含义，以后沟通或者看相关的文章都可以节省一些成本。</p><p>基于这些搜罗了一些这方面的博客和文章，加上自己的理解，基于 Golang 对于其中的一些基础概念和关系的总结。</p><p>一图胜千言：</p><p><img src="https://www.qtter.com/wp-content/uploads/2021/10/%E6%9C%AA%E5%91%BD%E5%90%8D%E6%96%87%E4%BB%B6.png"></p><p>参考博客：</p><p>Golang 并发编程之同步原语：<a href="https://mp.weixin.qq.com/s?__biz=MzUzNTY5MzU2MA==&mid=2247484379&idx=1&sn=1a2abc6f639a34e62f3a5a0fcd774a71&chksm=fa80d24ccdf75b5a70d45168ad9e3a55dd258c1dd57147166a86062ee70d909ff1e5b0ba2bcb&token=183756123&lang=zh_CN#rd">https://mp.weixin.qq.com/s?__biz&#x3D;MzUzNTY5MzU2MA&#x3D;&#x3D;&amp;mid&#x3D;2247484379&amp;idx&#x3D;1&amp;sn&#x3D;1a2abc6f639a34e62f3a5a0fcd774a71&amp;chksm&#x3D;fa80d24ccdf75b5a70d45168ad9e3a55dd258c1dd57147166a86062ee70d909ff1e5b0ba2bcb&amp;token&#x3D;183756123&amp;lang&#x3D;zh_CN#rd</a></p><p>Go之深入理解mutex：<a href="http://blog.newbmiao.com/2020/07/01/dig101-golang-understanding-mutex.html">http://blog.newbmiao.com/2020/07/01/dig101-golang-understanding-mutex.html</a></p><p>Golang中的CAS原子操作 和 锁：<a href="https://blog.haohtml.com/archives/25881">https://blog.haohtml.com/archives/25881</a></p><p>Golang WaitGroup 原理深度剖析：<a href="https://www.cyhone.com/articles/golang-waitgroup/">https://www.cyhone.com/articles/golang-waitgroup/</a></p><p>Dig101-Go之聊聊struct的内存对齐：<a href="http://blog.newbmiao.com/2020/02/10/dig101-golang-struct-memory-align.html">http://blog.newbmiao.com/2020/02/10/dig101-golang-struct-memory-align.html</a></p><p>一文彻底搞懂CAS实现原理 &amp; 深入到CPU指令：<a href="https://zhuanlan.zhihu.com/p/94976168">https://zhuanlan.zhihu.com/p/94976168</a></p><p>MESI:<a href="https://www.scss.tcd.ie/Jeremy.Jones/VivioJS/caches/MESIHelp.htm">https://www.scss.tcd.ie/Jeremy.Jones/VivioJS/caches/MESIHelp.htm</a></p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;blockquote&gt;
+&lt;p&gt;“是时候好好理清那些重要的基础概念和系统知识了” ——很久之后，当你从泥泞的业务项目代码中脱身时，总是会这样想到。&lt;br&gt;本文主要是对阅读过的一些好的博客文章做一个汇总整理（参考博客地址见文章末尾），为了查阅方便，以及防止哪天这些博客的文章意外不见</summary>
+      
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    <category term="Golang" scheme="http://example.com/categories/Golang/"/>
+    
+    
+    <category term="CAS" scheme="http://example.com/tags/CAS/"/>
+    
+    <category term="MESI" scheme="http://example.com/tags/MESI/"/>
+    
+    <category term="原子操作" scheme="http://example.com/tags/%E5%8E%9F%E5%AD%90%E6%93%8D%E4%BD%9C/"/>
+    
+    <category term="并发安全" scheme="http://example.com/tags/%E5%B9%B6%E5%8F%91%E5%AE%89%E5%85%A8/"/>
+    
+    <category term="锁" scheme="http://example.com/tags/%E9%94%81/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Linux 下关于： select、poll、epoll</title>
+    <link href="http://example.com/2021/10/16/linux-select-poll-epoll/"/>
+    <id>http://example.com/2021/10/16/linux-select-poll-epoll/</id>
+    <published>2021-10-16T05:52:10.000Z</published>
+    <updated>2025-07-10T12:18:54.460Z</updated>
+    
+    <content type="html"><![CDATA[<blockquote><p>“是时候好好理清那些重要的基础概念和系统知识了” ——很久之后，当你从泥泞的业务项目代码中脱身时，总是会这样想到。<br>本文主要是对阅读过的一些好的博客文章做一个汇总整理（参考博客地址见文章末尾），为了查阅方便，以及防止哪天这些博客的文章意外不见</p></blockquote><p>Table of Contents</p><ul><li><a href="#htoc-">前言</a><ul><li><a href="#htoc-1">用户空间和内核空间</a></li><li><a href="#htoc-11">进程切换</a></li><li><a href="#htoc-111">进程的阻塞</a></li><li><a href="#htoc-fd">文件描述符fd</a></li><li><a href="#htoc-i-o">缓存 I&#x2F;O</a></li></ul></li><li><a href="#htoc-i-o-select-poll-epoll">正文</a><ul><li><a href="#htoc-select">select</a><ul><li><a href="#htoc-1111">基本原理</a></li><li><a href="#htoc-111111111">优缺点</a></li></ul></li><li><a href="#htoc-poll">poll</a><ul><li><a href="#htoc-poll1">poll基本原理</a></li><li><a href="#htoc-1111111111">优缺点</a></li></ul></li><li><a href="#htoc-epoll">epoll</a><ul><li><a href="#htoc-11111">基本原理</a></li><li><a href="#htoc-epoll1">epoll的优点：</a></li><li><a href="#htoc-epoll11">epoll的工作模式</a><ul><li><a href="#htoc-lt">LT模式：</a></li><li><a href="#htoc-et">ET模式</a></li></ul></li></ul></li><li><a href="#htoc-select-poll-epoll">select、poll、epoll对比</a><ul><li><a href="#htoc-111111">进程所打开最大连接数</a></li><li><a href="#htoc-fd-io">FD剧增后带来的IO效率问题</a></li><li><a href="#htoc-1111111">消息传递方式</a></li></ul></li></ul></li><li><a href="#htoc-11111111">附录</a></li></ul><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在进行解释之前，首先要说明几个概念：</p><h3 id="用户空间和内核空间"><a href="#用户空间和内核空间" class="headerlink" title="用户空间和内核空间"></a>用户空间和内核空间</h3><p>现在操作系统都是采用虚拟存储器，那么对32位操作系统而言，它的寻址空间（虚拟存储空间）为4G（2的32次方）。操作系统的核心是内核，独立于普通的应用程序，可以访问受保护的内存空间，也有访问底层硬件设备的所有权限。为了保证用户进程不能直接操作内核（kernel），保证内核的安全，操心系统将虚拟空间划分为两部分，一部分为内核空间，一部分为用户空间。针对linux操作系统而言，将最高的1G字节（从虚拟地址0xC0000000到0xFFFFFFFF），供内核使用，称为内核空间，而将较低的3G字节（从虚拟地址0x00000000到0xBFFFFFFF），供各个进程使用，称为用户空间。</p><h3 id="进程切换"><a href="#进程切换" class="headerlink" title="进程切换"></a>进程切换</h3><p>为了控制进程的执行，内核必须有能力挂起正在CPU上运行的进程，并恢复以前挂起的某个进程的执行。这种行为被称为进程切换。因此可以说，任何进程都是在操作系统内核的支持下运行的，是与内核紧密相关的。</p><p>从一个进程的运行转到另一个进程上运行，这个过程中经过下面这些变化：<br>1. 保存处理机上下文，包括程序计数器和其他寄存器。<br>2. 更新PCB信息。<br>3. 把进程的PCB移入相应的队列，如就绪、在某事件阻塞等队列。<br>4. 选择另一个进程执行，并更新其PCB。<br>5. 更新内存管理的数据结构。<br>6. 恢复处理机上下文。</p><h3 id="进程的阻塞"><a href="#进程的阻塞" class="headerlink" title="进程的阻塞"></a>进程的阻塞</h3><p>正在执行的进程，由于期待的某些事件未发生，如请求系统资源失败、等待某种操作的完成、新数据尚未到达或无新工作做等，则由系统自动执行阻塞原语(Block)，使自己由运行状态变为阻塞状态。可见，进程的阻塞是进程自身的一种主动行为，也因此只有处于运行态的进程（获得CPU），才可能将其转为阻塞状态。<code>**当进程进入阻塞状态，是不占用CPU资源的**</code>。</p><h3 id="文件描述符fd"><a href="#文件描述符fd" class="headerlink" title="文件描述符fd"></a>文件描述符fd</h3><p>文件描述符（File descriptor）是计算机科学中的一个术语，是一个用于表述指向文件的引用的抽象化概念。</p><p>文件描述符在形式上是一个非负整数。实际上，它是一个索引值，指向内核为每一个进程所维护的该进程打开文件的记录表。当程序打开一个现有文件或者创建一个新文件时，内核向进程返回一个文件描述符。在程序设计中，一些涉及底层的程序编写往往会围绕着文件描述符展开。但是文件描述符这一概念往往只适用于UNIX、Linux这样的操作系统。</p><h3 id="缓存-I-O"><a href="#缓存-I-O" class="headerlink" title="缓存 I&#x2F;O"></a>缓存 I&#x2F;O</h3><p>缓存 I&#x2F;O 又被称作标准 I&#x2F;O，大多数文件系统的默认 I&#x2F;O 操作都是缓存 I&#x2F;O。在 Linux 的缓存 I&#x2F;O 机制中，操作系统会将 I&#x2F;O 的数据缓存在文件系统的页缓存（ page cache ）中，也就是说，数据会先被拷贝到操作系统内核的缓冲区中，然后才会从操作系统内核的缓冲区拷贝到应用程序的地址空间。</p><p><strong>缓存 I&#x2F;O 的缺点：</strong><br>数据在传输过程中需要在应用程序地址空间和内核进行多次数据拷贝操作，这些数据拷贝操作所带来的 CPU 以及内存开销是非常大的。</p><h2 id="正文"><a href="#正文" class="headerlink" title="正文"></a>正文</h2><p>select，poll，epoll都是IO多路复用的机制。</p><p>I&#x2F;O多路复用就是通过一种机制，一个进程可以监视多个描述符，一旦某个描述符就绪（一般是读就绪或者写就绪），能够通知程序进行相应的读写操作。</p><p>但select，poll，epoll本质上都是同步I&#x2F;O，因为他们都需要在读写事件就绪后自己负责进行读写，也就是说这个读写过程是阻塞的，而异步I&#x2F;O则无需自己负责进行读写，异步I&#x2F;O的实现会负责把数据从内核拷贝到用户空间</p><h3 id="select"><a href="#select" class="headerlink" title="select"></a>select</h3><h4 id="基本原理"><a href="#基本原理" class="headerlink" title="基本原理"></a>基本原理</h4><p><img src="https://www.qtter.com/wp-content/uploads/2021/10/select.png"></p><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">select</span> <span class="params">(<span class="type">int</span> n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, <span class="keyword">struct</span> timeval *timeout)</span></span>;</span><br></pre></td></tr></table></figure><p>select 函数监视的文件描述符分3类，分别是writefds、readfds、和exceptfds。调用后select函数会阻塞，直到有描述副就绪（有数据 可读、可写、或者有except），或者超时（timeout指定等待时间，如果立即返回设为null即可），函数返回。当select函数返回后，可以 通过遍历fdset，来找到就绪的描述符。</p><h4 id="优缺点"><a href="#优缺点" class="headerlink" title="优缺点"></a>优缺点</h4><p><strong>优点</strong>：select目前几乎在所有的平台上支持<br><strong>缺点</strong>：<br><strong>1.单个进程能够监视的文件描述符的数量存在最大限制。</strong><br>在Linux上一般为1024，可以通过修改宏定义甚至重新编译内核的方式提升这一限制，但 是这样也会造成效率的降低。<br><strong>2.对socket进行扫描时是线性扫描，即采用轮询的方法，效率较低。</strong><br>当套接字比较多的时候，每次select()都要通过遍历FD_SETSIZE个Socket来完成调度，不管哪个Socket是活跃的，都遍历一遍。这会浪费很多CPU时间。如果能给套接字注册某个回调函数，当他们活跃时，自动完成相关操作，那就避免了轮询，这正是epoll与kqueue做的。<br><strong>3.需要维护一个用来存放大量fd的数据结构，这样会使得用户空间和内核空间在传递该结构时复制开销大。</strong></p><h3 id="poll"><a href="#poll" class="headerlink" title="poll"></a>poll</h3><h4 id="poll基本原理"><a href="#poll基本原理" class="headerlink" title="poll基本原理"></a>poll基本原理</h4><p>poll本质上和select没有区别，它将用户传入的数组拷贝到内核空间，然后查询每个fd对应的设备状态，如果设备就绪则在设备等待队列中加入一项并继续遍历，如果遍历完所有fd后没有发现就绪设备，则挂起当前进程，直到设备就绪或者主动超时，被唤醒后它又要再次遍历fd。这个过程经历了多次无谓的遍历。</p><h4 id="优缺点-1"><a href="#优缺点-1" class="headerlink" title="优缺点"></a>优缺点</h4><p><strong>优点：没有最大连接数的限制，原因是它是基于链表来存储的。</strong></p><p><strong>缺点：</strong><br>1. 大量的fd的数组被整体复制于用户态和内核地址空间之间，而不管这样的复制是不是有意义。<br>2. poll还有一个特点是“水平触发”，如果报告了fd后，没有被处理，那么下次poll时会再次报告该fd。</p><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">poll</span> <span class="params">(<span class="keyword">struct</span> pollfd *fds, <span class="type">unsigned</span> <span class="type">int</span> nfds, <span class="type">int</span> timeout)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">struct</span> <span class="title class_">pollfd</span> &#123;</span><br><span class="line">    <span class="type">int</span> fd; <span class="comment">/* file descriptor */</span></span><br><span class="line">    <span class="type">short</span> events; <span class="comment">/* requested events to watch */</span></span><br><span class="line">    <span class="type">short</span> revents; <span class="comment">/* returned events witnessed */</span></span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure><p>不同与select使用三个位图来表示三个fdset的方式，poll使用一个 pollfd的指针实现。</p><p>pollfd结构包含了要监视的event和发生的event，不再使用select“参数-值”传递的方式。同时，pollfd并没有最大数量限制（但是数量过大后性能也是会下降）。 和select函数一样，poll返回后，需要轮询pollfd来获取就绪的描述符。</p><p>从上面看，select和poll都需要在返回后，<code>通过遍历文件描述符来获取已经就绪的socket</code>。事实上，同时连接的大量客户端在一时刻可能只有很少的处于就绪状态，因此随着监视的描述符数量的增长，其效率也会线性下降。</p><h3 id="epoll"><a href="#epoll" class="headerlink" title="epoll"></a>epoll</h3><h4 id="基本原理-1"><a href="#基本原理-1" class="headerlink" title="基本原理"></a>基本原理</h4><p>epoll支持水平触发和边缘触发，最大的特点在于边缘触发，它只告诉进程哪些fd刚刚变为就绪态，并且只会通知一次。还有一个特点是，epoll使用“事件”的就绪通知方式，通过epoll_ctl注册fd，一旦该fd就绪，内核就会采用类似callback的回调机制来激活该fd，epoll_wait便可以收到通知。</p><h4 id="epoll的优点："><a href="#epoll的优点：" class="headerlink" title="epoll的优点："></a><strong>epoll的优点：</strong></h4><p>1.没有最大并发连接的限制，能打开的FD的上限远大于1024（1G的内存上能监听约10万个端口）。</p><p>2. 效率提升，不是轮询的方式，不会随着FD数目的增加效率下降。只有活跃可用的FD才会调用callback函数；即Epoll最大的优点就在于它只管你“活跃”的连接，而跟连接总数无关，因此在实际的网络环境中，Epoll的效率就会远远高于select和poll。</p><p>3.内存拷贝，利用mmap()文件映射内存加速与内核空间的消息传递；即epoll使用mmap减少复制开销。</p><p>epoll操作过程需要三个接口，分别如下：</p><figure class="highlight arduino"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">int</span> <span class="title">epoll_create</span><span class="params">(<span class="type">int</span> size)</span></span>;  <span class="comment">//创建一个epoll的句柄，size用来告诉内核这个监听的数目一共有多大</span></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">epoll_ctl</span><span class="params">(<span class="type">int</span> epfd, <span class="type">int</span> op, <span class="type">int</span> fd, <span class="keyword">struct</span> epoll_event *event)</span></span>;</span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">epoll_wait</span><span class="params">(<span class="type">int</span> epfd, <span class="keyword">struct</span> epoll_event * events, <span class="type">int</span> maxevents, <span class="type">int</span> timeout)</span></span>;</span><br></pre></td></tr></table></figure><p><strong>1. int epoll_create(int size);</strong></p><p>创建一个epoll的句柄，size用来告诉内核这个监听的数目一共有多大，这个参数不同于select()中的第一个参数，给出最大监听的fd+1的值，<code>参数size并不是限制了epoll所能监听的描述符最大个数，只是对内核初始分配内部数据结构的一个建议</code>。<br>当创建好epoll句柄后，它就会占用一个fd值，在linux下如果查看&#x2F;proc&#x2F;进程id&#x2F;fd&#x2F;，是能够看到这个fd的，所以在使用完epoll后，必须调用close()关闭，否则可能导致fd被耗尽。</p><p><strong>2. int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)；</strong></p><p>函数是对指定描述符fd执行op操作。<br>- epfd：是epoll_create()的返回值。<br>- op：表示op操作，用三个宏来表示：添加EPOLL_CTL_ADD，删除EPOLL_CTL_DEL，修改EPOLL_CTL_MOD。分别添加、删除和修改对fd的监听事件。<br>- fd：是需要监听的fd（文件描述符）<br>- epoll_event：是告诉内核需要监听什么事，struct epoll_event结构如下：</p><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">struct</span> <span class="title class_">epoll_event</span> &#123;</span><br><span class="line">  <span class="type">__uint32_t</span> events;  <span class="comment">/* Epoll events */</span></span><br><span class="line">  <span class="type">epoll_data_t</span> data;  <span class="comment">/* User data variable */</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">//events可以是以下几个宏的集合：</span></span><br><span class="line">EPOLLIN ：表示对应的文件描述符可以读（包括对端SOCKET正常关闭）；</span><br><span class="line">EPOLLOUT：表示对应的文件描述符可以写；</span><br><span class="line">EPOLLPRI：表示对应的文件描述符有紧急的数据可读（这里应该表示有带外数据到来）；</span><br><span class="line">EPOLLERR：表示对应的文件描述符发生错误；</span><br><span class="line">EPOLLHUP：表示对应的文件描述符被挂断；</span><br><span class="line">EPOLLET： 将EPOLL设为边缘触发(Edge Triggered)模式，这是相对于水平触发(Level Triggered)来说的。</span><br><span class="line">EPOLLONESHOT：只监听一次事件，当监听完这次事件之后，如果还需要继续监听这个socket的话，需要再次把这个socket加入到EPOLL队列里</span><br></pre></td></tr></table></figure><p><strong>3. int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout);</strong></p><p>等待epfd上的io事件，最多返回maxevents个事件。<br>参数events用来从内核得到事件的集合，maxevents告之内核这个events有多大，这个maxevents的值不能大于创建epoll_create()时的size，参数timeout是超时时间（毫秒，0会立即返回，-1将不确定，也有说法说是永久阻塞）。该函数返回需要处理的事件数目，如返回0表示已超时。</p><h4 id="epoll的工作模式"><a href="#epoll的工作模式" class="headerlink" title="epoll的工作模式"></a>epoll的工作模式</h4><p>epoll对文件描述符的操作有两种模式：<strong>LT（level trigger）<strong>和</strong>ET（edge trigger）</strong>。LT模式是默认模式，LT模式与ET模式的区别如下：</p><h5 id="LT模式："><a href="#LT模式：" class="headerlink" title="LT模式："></a><strong>LT模式</strong>：</h5><p>LT(level triggered)是缺省的工作方式，并且同时支持block和no-block socket.在这种做法中，内核告诉你一个文件描述符是否就绪了，然后你可以对这个就绪的fd进行IO操作。如果你不作任何操作，内核还是会继续通知你的。<br>当epoll_wait检测到描述符事件发生并将此事件通知应用程序，<code>应用程序可以不立即处理该事件</code>。下次调用epoll_wait时，会再次响应应用程序并通知此事件。</p><h5 id="ET模式"><a href="#ET模式" class="headerlink" title="ET模式"></a><strong>ET模式</strong></h5><p>当epoll_wait检测到描述符事件发生并将此事件通知应用程序，<code>应用程序必须立即处理该事件</code>。如果不处理，下次调用epoll_wait时，不会再次响应应用程序并通知此事件。  </p><p>ET(edge-triggered)是高速工作方式，只支持no-block socket。在这种模式下，当描述符从未就绪变为就绪时，内核通过epoll告诉你。然后它会假设你知道文件描述符已经就绪，并且不会再为那个文件描述符发送更多的就绪通知，直到你做了某些操作导致那个文件描述符不再为就绪状态了(比如，你在发送，接收或者接收请求，或者发送接收的数据少于一定量时导致了一个EWOULDBLOCK 错误）。但是请注意，如果一直不对这个fd作IO操作(从而导致它再次变成未就绪)，内核不会发送更多的通知(only once)</p><p>ET模式在很大程度上减少了epoll事件被重复触发的次数，因此效率要比LT模式高。epoll工作在ET模式的时候，必须使用非阻塞套接口，以避免由于一个文件句柄的阻塞读&#x2F;阻塞写操作把处理多个文件描述符的任务饿死。</p><h3 id="select、poll、epoll对比"><a href="#select、poll、epoll对比" class="headerlink" title="select、poll、epoll对比"></a>select、poll、epoll对比</h3><h4 id="进程所打开最大连接数"><a href="#进程所打开最大连接数" class="headerlink" title="进程所打开最大连接数"></a><strong>进程所打开最大连接数</strong></h4><p>select</p><p>单个进程所能打开的最大连接数有FD—SETSIZE宏定义，其大小是32个整数的大小（在32位的机器上，大小就是32*32，同理64位机器上<br>FD—SETSIZE为32*64） ，当然我们可以对进行修改，然后重新编译内核，但是性能可能会受到影响，这需要进一步的测试。</p><p>poll</p><p>poll本质上和select没有区别，但是它没有最大连接数的限制，原因是它是基于链表来存储的</p><p>epoll</p><p>虽然连接数有上限，但是很大， 1G内存的机器上可以打开10万左右的连接， 2G内存的机器可以打开20万左右的连接</p><h4 id="FD剧增后带来的IO效率问题"><a href="#FD剧增后带来的IO效率问题" class="headerlink" title="FD剧增后带来的IO效率问题"></a><strong>FD剧增后带来的IO效率问题</strong></h4><p>select</p><p>因为每次调用时都会对连接进行线性遍历，所以随着FD的增加会造成遍历select<br>速度慢的“线性下降性能问题”</p><p>poll</p><p>同上</p><p>epoll</p><p>因为epoll内核中实现是根据每个fd上的callback函数来实现的，只有活跃<br>的socket才会主动调用callback，所以在活跃socket较少的情况下，使用epoll<br>epoll没有前面两者的线性下降的性能问题，但是所有socket都很活跃的情况下，可能会有性能问题。</p><h4 id="消息传递方式"><a href="#消息传递方式" class="headerlink" title="消息传递方式"></a><strong>消息传递方式</strong></h4><p>select</p><p>内核需要将消息传递到用户空间，都需要内核拷贝动作</p><p>poll</p><p>同上</p><p>epoll</p><p>epoll通过内核和用户空间共享一块内存来实现的。</p><h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><p>参考博客：</p><p><a href="https://www.toutiao.com/a6603975473665933838/">https://www.toutiao.com/a6603975473665933838/</a></p><p><a href="https://blog.csdn.net/m0_37235955/article/details/116381430?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_title~default-0.no_search_link&spm=1001.2101.3001.4242">https://blog.csdn.net/m0_37235955&#x2F;article&#x2F;details&#x2F;116381430?utm_medium&#x3D;distribute.pc_relevant.none-task-blog-2<del>default</del>baidujs_title~default-0.no_search_link&amp;spm&#x3D;1001.2101.3001.4242</a></p><p><a href="https://segmentfault.com/a/1190000003063859">https://segmentfault.com/a/1190000003063859</a></p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;blockquote&gt;
+&lt;p&gt;“是时候好好理清那些重要的基础概念和系统知识了” ——很久之后，当你从泥泞的业务项目代码中脱身时，总是会这样想到。&lt;br&gt;本文主要是对阅读过的一些好的博客文章做一个汇总整理（参考博客地址见文章末尾），为了查阅方便，以及防止哪天这些博客的文章意外不见</summary>
+      
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    <category term="tech-include" scheme="http://example.com/categories/tech-include/"/>
+    
+    
+    <category term="epoll" scheme="http://example.com/tags/epoll/"/>
+    
+    <category term="poll" scheme="http://example.com/tags/poll/"/>
+    
+    <category term="select" scheme="http://example.com/tags/select/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>关于IO ：同步、异步、阻塞、非阻塞</title>
+    <link href="http://example.com/2021/10/16/linux-io-block-nonblock/"/>
+    <id>http://example.com/2021/10/16/linux-io-block-nonblock/</id>
+    <published>2021-10-16T04:41:49.000Z</published>
+    <updated>2025-07-10T12:18:54.460Z</updated>
+    
+    <content type="html"><![CDATA[<blockquote><p>“是时候好好理清那些重要的基础概念和系统知识了” ——很久之后，当你从泥泞的业务项目代码中脱身时，总是会这样想到。<br>本文主要是对阅读过的一些好的博客文章做一个汇总整理（参考博客地址见文章末尾），为了查阅方便，以及防止哪天这些博客的文章意外不见</p></blockquote><p>Table of Contents</p><ul><li><a href="#htoc-">前言</a></li><li><a href="#htoc-blocking-io">blocking IO</a></li><li><a href="#htoc-non-blocking-io">non-blocking IO</a></li><li><a href="#htoc-io-multiplexing">IO multiplexing</a></li><li><a href="#htoc-asynchronous-i-o">Asynchronous I&#x2F;O</a></li><li><a href="#htoc-1">总结</a></li><li><a href="#htoc-11">附录：</a></li></ul><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>本文讨论的背景是Linux环境下的network IO。<br>本文最重要的参考文献是Richard Stevens的“UNIX® Network Programming Volume 1, Third Edition: The Sockets Networking ”，6.2节“I&#x2F;O Models ”，Stevens在这节中详细说明了各种IO的特点和区别，如果英文够好的话，推荐直接阅读。Stevens的文风是有名的深入浅出，所以不用担心看不懂。本文中的流程图也是截取自参考文献。  </p><p>Stevens在文章中一共比较了五种IO Model：<br>blocking IO<br>nonblocking IO<br>IO multiplexing<br>signal driven IO<br>asynchronous IO<br>由于signal driven IO在实际中并不常用，所以我这只提及剩下的四种IO Model。</p><p>再说一下IO发生时涉及的对象和步骤。<br>对于一个network IO (这里我们以read举例)，它会涉及到两个系统对象，一个是调用这个IO的process (or thread)，另一个就是系统内核(kernel)。当一个read操作发生时，它会经历两个阶段：<br>1 等待数据准备 (Waiting for the data to be ready)<br>2 将数据从内核拷贝到进程中 (Copying the data from the kernel to the process)<br>记住这两点很重要，因为这些IO Model的区别就是在两个阶段上各有不同的情况。  </p><h2 id="blocking-IO"><a href="#blocking-IO" class="headerlink" title="blocking IO"></a><strong>blocking IO</strong></h2><p>在linux中，默认情况下所有的socket都是blocking，一个典型的读操作流程大概是这样：</p><p><img src="https://www.qtter.com/wp-content/uploads/2021/10/blocking-io.jpg" alt="blocking-io-model"></p><p>当用户进程调用了recvfrom这个系统调用，kernel就开始了IO的第一个阶段：准备数据。对于network io来说，很多时候数据在一开始还没有到达（比如，还没有收到一个完整的UDP包），这个时候kernel就要等待足够的数据到来。而在用户进程这边，整个进程会被阻塞。当kernel一直等到数据准备好了，它就会将数据从kernel中拷贝到用户内存，然后kernel返回结果，用户进程才解除block的状态，重新运行起来。<br>所以，blocking IO的特点就是在IO执行的两个阶段都被block了。</p><h2 id="non-blocking-IO"><a href="#non-blocking-IO" class="headerlink" title="non-blocking IO"></a><strong>non-blocking IO</strong></h2><p>linux下，可以通过设置socket使其变为non-blocking。当对一个non-blocking socket执行读操作时，流程是这个样子：</p><p><img src="https://www.qtter.com/wp-content/uploads/2021/10/non-blocking-io.jpg" alt="non-blocking-io"></p><p>从图中可以看出，当用户进程发出read操作时，如果kernel中的数据还没有准备好，那么它并不会block用户进程，而是立刻返回一个error。从用户进程角度讲 ，它发起一个read操作后，并不需要等待，而是马上就得到了一个结果。用户进程判断结果是一个error时，它就知道数据还没有准备好，于是它可以再次发送read操作。一旦kernel中的数据准备好了，并且又再次收到了用户进程的system call，那么它马上就将数据拷贝到了用户内存，然后返回。<br>所以，用户进程其实是需要不断的主动询问kernel数据好了没有。</p><h2 id="IO-multiplexing"><a href="#IO-multiplexing" class="headerlink" title="IO multiplexing"></a><strong>IO multiplexing</strong></h2><p>IO multiplexing这个词可能有点陌生，但是如果我说select，epoll，大概就都能明白了。有些地方也称这种IO方式为event driven IO。我们都知道，select&#x2F;epoll的好处就在于单个process就可以同时处理多个网络连接的IO。它的基本原理就是select&#x2F;epoll这个function会不断的轮询所负责的所有socket，当某个socket有数据到达了，就通知用户进程。它的流程如图：</p><p><img src="https://www.qtter.com/wp-content/uploads/2021/10/io-multiplexing.jpg" alt="multiplexing-io"></p><p>当用户进程调用了select，那么整个进程会被block，而同时，kernel会“监视”所有select负责的socket，当任何一个socket中的数据准备好了，select就会返回。这个时候用户进程再调用read操作，将数据从kernel拷贝到用户进程。<br>这个图和blocking IO的图其实并没有太大的不同，事实上，还更差一些。因为这里需要使用两个system call (select 和 recvfrom)，而blocking IO只调用了一个system call (recvfrom)。但是，用select的优势在于它可以同时处理多个connection。（多说一句。所以，如果处理的连接数不是很高的话，使用select&#x2F;epoll的web server不一定比使用multi-threading + blocking IO的web server性能更好，可能延迟还更大。select&#x2F;epoll的优势并不是对于单个连接能处理得更快，而是在于能处理更多的连接。）<br>在IO multiplexing Model中，实际中，对于每一个socket，一般都设置成为non-blocking，但是，如上图所示，整个用户的process其实是一直被block的。只不过process是被select这个函数block，而不是被socket IO给block。</p><h2 id="Asynchronous-I-O"><a href="#Asynchronous-I-O" class="headerlink" title="Asynchronous I&#x2F;O"></a><strong>Asynchronous I&#x2F;O</strong></h2><p>linux下的asynchronous IO其实用得很少。先看一下它的流程：</p><p><img src="https://www.qtter.com/wp-content/uploads/2021/10/asynchronous-io.jpg" alt="Asynchronous I&#x2F;O"></p><p>用户进程发起read操作之后，立刻就可以开始去做其它的事。而另一方面，从kernel的角度，当它受到一个asynchronous read之后，首先它会立刻返回，所以不会对用户进程产生任何block。然后，kernel会等待数据准备完成，然后将数据拷贝到用户内存，当这一切都完成之后，kernel会给用户进程发送一个signal，告诉它read操作完成了。</p><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>到目前为止，已经将四个IO Model都介绍完了。现在回过头来回答最初的那几个问题：blocking和non-blocking的区别在哪，synchronous IO和asynchronous IO的区别在哪。<br>先回答最简单的这个：blocking vs non-blocking。前面的介绍中其实已经很明确的说明了这两者的区别。调用blocking IO会一直block住对应的进程直到操作完成，而non-blocking IO在kernel还准备数据的情况下会立刻返回。</p><p>在说明synchronous IO和asynchronous IO的区别之前，需要先给出两者的定义。Stevens给出的定义（其实是POSIX的定义）是这样子的：<br>A synchronous I&#x2F;O operation causes the requesting process to be blocked until that I&#x2F;O operation completes;<br>An asynchronous I&#x2F;O operation does not cause the requesting process to be blocked;<br>两者的区别就在于synchronous IO做”IO operation”的时候会将process阻塞。按照这个定义，之前所述的blocking IO，non-blocking IO，IO multiplexing都属于synchronous IO。有人可能会说，non-blocking IO并没有被block啊。这里有个非常“狡猾”的地方，定义中所指的”IO operation”是指真实的IO操作，就是例子中的recvfrom这个system call。non-blocking IO在执行recvfrom这个system call的时候，如果kernel的数据没有准备好，这时候不会block进程。但是，当kernel中数据准备好的时候，recvfrom会将数据从kernel拷贝到用户内存中，这个时候进程是被block了，在这段时间内，进程是被block的。而asynchronous IO则不一样，当进程发起IO 操作之后，就直接返回再也不理睬了，直到kernel发送一个信号，告诉进程说IO完成。在这整个过程中，进程完全没有被block。</p><p>各个IO Model的比较如图所示：</p><p><img src="https://www.qtter.com/wp-content/uploads/2021/10/comparison-of-the-five-io-models.jpg"></p><p>经过上面的介绍，会发现non-blocking IO和asynchronous IO的区别还是很明显的。在non-blocking IO中，虽然进程大部分时间都不会被block，但是它仍然要求进程去主动的check，并且当数据准备完成以后，也需要进程主动的再次调用recvfrom来将数据拷贝到用户内存。而asynchronous IO则完全不同。它就像是用户进程将整个IO操作交给了他人（kernel）完成，然后他人做完后发信号通知。在此期间，用户进程不需要去检查IO操作的状态，也不需要主动的去拷贝数据。</p><h2 id="附录："><a href="#附录：" class="headerlink" title="附录："></a>附录：</h2><p>参考博客：<a href="https://blog.csdn.net/historyasamirror/article/details/5778378">https://blog.csdn.net/historyasamirror/article/details/5778378</a></p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;blockquote&gt;
+&lt;p&gt;“是时候好好理清那些重要的基础概念和系统知识了” ——很久之后，当你从泥泞的业务项目代码中脱身时，总是会这样想到。&lt;br&gt;本文主要是对阅读过的一些好的博客文章做一个汇总整理（参考博客地址见文章末尾），为了查阅方便，以及防止哪天这些博客的文章意外不见</summary>
+      
+    
+    
+    
+    <category term="技术" scheme="http://example.com/categories/%E6%8A%80%E6%9C%AF/"/>
+    
+    <category term="tech-include" scheme="http://example.com/categories/tech-include/"/>
+    
+    
+    <category term="io" scheme="http://example.com/tags/io/"/>
+    
+    <category term="linux" scheme="http://example.com/tags/linux/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>希尔排序</title>
+    <link href="http://example.com/2021/08/03/shellsort/"/>
+    <id>http://example.com/2021/08/03/shellsort/</id>
+    <published>2021-08-03T09:21:57.000Z</published>
+    <updated>2025-07-10T12:18:54.461Z</updated>
+    
+    <content type="html"><![CDATA[<p>参考：<a href="https://baike.baidu.com/item/%E5%B8%8C%E5%B0%94%E6%8E%92%E5%BA%8F/3229428?fr=aladdin">https://baike.baidu.com/item/%E5%B8%8C%E5%B0%94%E6%8E%92%E5%BA%8F/3229428?fr=aladdin</a></p><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">//希尔排序</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">shellSort</span><span class="params">(arr []<span class="type">int</span>)</span></span> &#123;</span><br><span class="line">length := <span class="built_in">len</span>(arr)</span><br><span class="line"><span class="keyword">for</span> step := length / <span class="number">2</span>; step &gt; <span class="number">0</span>; step /= <span class="number">2</span> &#123;</span><br><span class="line"><span class="keyword">for</span> i := step; i &lt; length; i += step &#123;</span><br><span class="line"><span class="keyword">for</span> j := i; j &gt;= <span class="number">0</span>; j -= step &#123;</span><br><span class="line"><span class="keyword">if</span> j &gt; <span class="number">0</span> &amp;&amp; arr[j] &lt; arr[j-step] &#123;</span><br><span class="line">arr[j-step], arr[j] = arr[j], arr[j-step]</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;参考：&lt;a href=&quot;https://baike.baidu.com/item/%E5%B8%8C%E5%B0%94%E6%8E%92%E5%BA%8F/3229428?fr=aladdin&quot;&gt;https://baike.baidu.com/item/%E5%B8%8C%</summary>
+      
+    
+    
+    
+    <category term="排序" scheme="http://example.com/categories/%E6%8E%92%E5%BA%8F/"/>
+    
+    
+    <category term="排序" scheme="http://example.com/tags/%E6%8E%92%E5%BA%8F/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>冒泡+选择+插入 排序</title>
+    <link href="http://example.com/2021/08/03/bubble-select-insert/"/>
+    <id>http://example.com/2021/08/03/bubble-select-insert/</id>
+    <published>2021-08-03T08:44:38.000Z</published>
+    <updated>2025-07-10T12:18:54.459Z</updated>
+    
+    <content type="html"><![CDATA[<figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//冒泡排序</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">bubbleSort</span><span class="params">(arr []<span class="type">int</span>)</span></span> &#123;</span><br><span class="line">length := <span class="built_in">len</span>(arr)</span><br><span class="line"><span class="keyword">for</span> i := <span class="number">0</span>; i &lt; length; i++ &#123;</span><br><span class="line"><span class="keyword">for</span> j := <span class="number">0</span>; j &lt; length<span class="number">-1</span>-i; j++ &#123;</span><br><span class="line"><span class="keyword">if</span> arr[j] &gt; arr[j+<span class="number">1</span>] &#123;</span><br><span class="line">arr[j], arr[j+<span class="number">1</span>] = arr[j+<span class="number">1</span>], arr[j]</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//选择排序</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">selectSort</span><span class="params">(arr []<span class="type">int</span>)</span></span> &#123;</span><br><span class="line">length := <span class="built_in">len</span>(arr)</span><br><span class="line"><span class="keyword">for</span> i := <span class="number">0</span>; i &lt; length; i++ &#123;</span><br><span class="line"><span class="keyword">for</span> j := i + <span class="number">1</span>; j &lt; length; j++ &#123;</span><br><span class="line"><span class="keyword">if</span> arr[i] &gt; arr[j] &#123;</span><br><span class="line">arr[i], arr[j] = arr[j], arr[i]</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//插入排序</span></span><br><span class="line"><span class="function"><span class="keyword">func</span> <span class="title">insertSort</span><span class="params">(arr []<span class="type">int</span>)</span></span> &#123;</span><br><span class="line">length := <span class="built_in">len</span>(arr)</span><br><span class="line"><span class="keyword">for</span> i := <span class="number">1</span>; i &lt; length; i++ &#123;</span><br><span class="line"><span class="keyword">for</span> j := i; j &gt;= <span class="number">0</span>; j-- &#123;</span><br><span class="line"><span class="keyword">if</span> j &gt; <span class="number">0</span> &amp;&amp; arr[j] &lt; arr[j<span class="number">-1</span>]&#123;</span><br><span class="line">arr[j<span class="number">-1</span>], arr[j] = arr[j], arr[j<span class="number">-1</span>]</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;figure class=&quot;highlight go&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;l</summary>
+      
+    
+    
+    
+    <category term="排序" scheme="http://example.com/categories/%E6%8E%92%E5%BA%8F/"/>
+    
+    
+    <category term="排序" scheme="http://example.com/tags/%E6%8E%92%E5%BA%8F/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>常见排序之复杂度对比</title>
+    <link href="http://example.com/2021/08/03/complexity/"/>
+    <id>http://example.com/2021/08/03/complexity/</id>
+    <published>2021-08-03T08:33:00.000Z</published>
+    <updated>2025-07-10T12:18:54.459Z</updated>
+    
+    <content type="html"><![CDATA[<p><strong>排序算法</strong></p><p><strong>时间复杂度</strong></p><p><strong>空间复杂度</strong></p><p><strong>稳定性</strong></p><p><strong>排序方式</strong></p><p><a href="https://www.qtter.com/2021/08/03/bubble_select_insert/">冒泡排序</a></p><p><em>O</em>(_n_2)</p><p><em>O</em>(1)</p><p>稳定</p><p>In-place</p><p><a href="https://www.qtter.com/2021/08/03/bubble_select_insert/">选择排序</a></p><p><em>O</em>(_n_2)</p><p><em>O</em>(1)</p><p>不稳定</p><p>In-place</p><p><a href="https://www.qtter.com/2021/08/03/bubble_select_insert/">插入排序</a></p><p><em>O</em>(_n_2)</p><p><em>O</em>(1)</p><p>稳定</p><p>In-place</p><p><a href="https://www.qtter.com/2021/08/03/shellsort/">希尔排序</a></p><p>O(nlogn)</p><p><em>O</em>(1)</p><p>不稳定</p><p>In-place</p><p><a href="https://www.qtter.com/2021/08/02/mergesort/">归并排序</a></p><p>O(nlogn)</p><p><em>O</em>(n)</p><p>稳定</p><p>Out-place</p><p><a href="https://www.qtter.com/2021/07/20/quicksort/">快速排序</a></p><p>O(nlogn)</p><p>O(logn)</p><p>不稳定</p><p>In-place</p><p><a href="https://www.qtter.com/2021/08/02/heapsort/">堆排序</a></p><p>O(nlogn)</p><p>O(1)</p><p>不稳定</p><p>In-place</p><p>计数排序</p><p>O(n+k)</p><p>O(k)</p><p>稳定</p><p>Out-place</p><p>桶排序</p><p>O(n+k)</p><p>O(n+k)</p><p>稳定</p><p>Out-place</p><p>基数排序</p><p>O(n×k)</p><p>O(n+k)</p><p>稳定</p><p>Out-place</p>]]></content>
+    
+    
+      
+      
+    <summary type="html">&lt;p&gt;&lt;strong&gt;排序算法&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;时间复杂度&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;空间复杂度&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;稳定性&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;排序方式&lt;/strong</summary>
+      
+    
+    
+    
+    <category term="排序" scheme="http://example.com/categories/%E6%8E%92%E5%BA%8F/"/>
+    
+    
+    <category term="复杂度" scheme="http://example.com/tags/%E5%A4%8D%E6%9D%82%E5%BA%A6/"/>
+    
+  </entry>
+  
+</feed>
