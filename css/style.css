@@ -55,7 +55,9 @@ button.submit {
 
 a:hover,
 a:active {
-  color: #444;
+  border-bottom: 1px solid red; /* 底部红色线 */
+  color: #000; /* 字体颜色可保留或自定义 */
+  text-decoration: none; /* 可选：防止浏览器默认下划线 */
 }
 
 a:focus {
